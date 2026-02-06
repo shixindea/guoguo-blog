@@ -2,7 +2,27 @@
 import { ThumbsUp, MessageSquare, Eye } from "lucide-react";
 import Link from "next/link";
 
-const articles = [
+export interface Article {
+  id: number;
+  title: string;
+  summary: string;
+  author: {
+    name: string;
+    avatar: string;
+  };
+  date: string;
+  views: string;
+  likes: number;
+  comments: number;
+  tags: string[];
+}
+
+interface ArticleListProps {
+  articles?: Article[];
+  showFilter?: boolean;
+}
+
+const DEFAULT_ARTICLES: Article[] = [
   {
     id: 1,
     title: "React 19 新特性深度解析：Server Components 实战指南",
@@ -49,9 +69,10 @@ const articles = [
   }
 ];
 
-export function ArticleList() {
+export function ArticleList({ articles = DEFAULT_ARTICLES, showFilter = true }: ArticleListProps) {
   return (
     <div className="space-y-4">
+        {showFilter && (
         <div className="flex items-center gap-6 mb-4 bg-white dark:bg-slate-900 px-6 py-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
             <button className="flex items-center gap-2 text-blue-600 font-bold text-sm relative">
                 <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-4 bg-blue-600 rounded-full"></span>
@@ -61,6 +82,7 @@ export function ArticleList() {
                 🕒 最新发布
             </button>
         </div>
+        )}
 
       {articles.map((article) => (
         <article

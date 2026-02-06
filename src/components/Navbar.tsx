@@ -2,10 +2,38 @@
 import Link from "next/link";
 import { Search, Bell, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export function Navbar() {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      const query = e.currentTarget.value;
+      if (query.trim()) {
+        router.push(`/search?q=${encodeURIComponent(query)}`);
+      }
+    }
+  };
+  const menuItems = [{
+    id: 1,
+    title: "首页",
+    href: "/"
+  }, {
+    id: 2,
+    title: "文章",
+    href: "/articles"
+  }, {
+    id: 3,
+    title: "标签",
+    href: "/tags"
+  }, {
+    id: 4,
+    title: "排行榜",
+    href: "/ranking"
+  }];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,6 +42,7 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
 
   return (
     <nav
@@ -36,13 +65,13 @@ export function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-1">
-            {[ "文章", "标签", "排行榜"].map((item) => (
+            {menuItems.map((item) => (
               <Link
-                key={item}
-                href={item === "文章" ? "/articles" : "#"}
+                key={item.id}
+                href={item.href}
                 className="px-4 py-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-medium text-sm"
               >
-                {item}
+                {item.title}
               </Link>
             ))}
           </div>
@@ -55,6 +84,7 @@ export function Navbar() {
               type="text"
               placeholder="搜索文章、作者、标签..."
               className="w-64 px-4 py-2 pl-10 bg-slate-100 dark:bg-slate-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all border border-transparent focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900"
+              onKeyDown={handleSearch}
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-blue-500 transition-colors" />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-xs text-slate-500 dark:text-slate-400 font-mono">
@@ -70,11 +100,11 @@ export function Navbar() {
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
             </button>
-            <button className="ml-2 w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] cursor-pointer hover:scale-105 transition-transform">
+            <Link href="/dashboard" className="ml-2 w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] cursor-pointer hover:scale-105 transition-transform block">
               <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" className="w-full h-full object-cover" />
               </div>
-            </button>
+            </Link>
           </div>
         </div>
       </div>
