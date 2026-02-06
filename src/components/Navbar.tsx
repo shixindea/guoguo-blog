@@ -36,10 +36,10 @@ export function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-1">
-            {["首页", "文章", "标签", "排行榜"].map((item) => (
+            {[ "文章", "标签", "排行榜"].map((item) => (
               <Link
                 key={item}
-                href="#"
+                href={item === "文章" ? "/articles" : "#"}
                 className="px-4 py-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-medium text-sm"
               >
                 {item}

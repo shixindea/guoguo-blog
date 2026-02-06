@@ -65,49 +65,49 @@ export function ArticleList() {
       {articles.map((article) => (
         <article
           key={article.id}
-          className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-slate-800 group cursor-pointer hover:-translate-y-0.5 duration-300"
+          className="bg-white dark:bg-slate-900 rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-slate-800 group cursor-pointer hover:-translate-y-0.5 duration-300"
         >
-          <div className="flex flex-col gap-3">
-             <div className="flex items-center gap-3 text-xs text-slate-500 mb-1">
-                <div className="flex items-center gap-2">
-                    <img src={article.author.avatar} alt={article.author.name} className="w-5 h-5 rounded-full" />
-                    <span className="font-medium text-slate-900 dark:text-slate-200 hover:text-blue-600 transition-colors">{article.author.name}</span>
+          <Link href={`/article/${article.id}`} className="block p-6">
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-xs text-slate-500 mb-1">
+                    <div className="flex items-center gap-2">
+                        <img src={article.author.avatar} alt={article.author.name} className="w-5 h-5 rounded-full" />
+                        <span className="font-medium text-slate-900 dark:text-slate-200 hover:text-blue-600 transition-colors">{article.author.name}</span>
+                    </div>
+                    <span className="w-0.5 h-0.5 bg-slate-300 rounded-full"></span>
+                    <span>{article.date}</span>
                 </div>
-                <span className="w-0.5 h-0.5 bg-slate-300 rounded-full"></span>
-                <span>{article.date}</span>
-             </div>
-            
-            <Link href={`/article/${article.id}`}>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 transition-colors line-clamp-1 mb-1">
-                {article.title}
-              </h3>
-            </Link>
-            
-            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">
-              {article.summary}
-            </p>
-            
-            <div className="flex items-center justify-between">
-               <div className="flex gap-2">
-                 {article.tags.map(tag => (
-                    <span key={tag} className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 transition-colors border border-slate-100 dark:border-slate-700">
-                        {tag}
-                    </span>
-                 ))}
-               </div>
-               
-               <div className="flex items-center gap-4 text-slate-400 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Eye className="w-4 h-4" />
-                    <span>{article.views}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
-                    <ThumbsUp className="w-4 h-4" />
-                    <span>{article.likes}</span>
-                  </div>
-               </div>
+                
+                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 transition-colors line-clamp-1 mb-1">
+                    {article.title}
+                </h3>
+                
+                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">
+                {article.summary}
+                </p>
+                
+                <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                    {article.tags.map(tag => (
+                        <span key={tag} className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 transition-colors border border-slate-100 dark:border-slate-700">
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+                
+                <div className="flex items-center gap-4 text-slate-400 text-sm">
+                    <div className="flex items-center gap-1.5">
+                        <Eye className="w-4 h-4" />
+                        <span>{article.views}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+                        <ThumbsUp className="w-4 h-4" />
+                        <span>{article.likes}</span>
+                    </div>
+                </div>
+                </div>
             </div>
-          </div>
+          </Link>
         </article>
       ))}
       

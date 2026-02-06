@@ -1,5 +1,6 @@
 import { ThumbsUp, MessageSquare, Star, Share2, MoreHorizontal } from "lucide-react";
 import { RecommendSidebar } from "@/components/RecommendSidebar";
+import { Comments } from "@/components/Comments";
 
 export default async function ArticlePage({
   params,
@@ -11,8 +12,10 @@ export default async function ArticlePage({
   return (
     <div className="container mx-auto px-4 pt-24 pb-12 min-h-screen">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Main Content Column */}
+        <div className="lg:col-span-8 space-y-8">
         {/* Main Article Content */}
-        <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-800">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-800">
            {/* Header */}
            <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
@@ -112,6 +115,8 @@ export default async function Page() {
                  </div>
               </div>
            </div>
+        </div>
+        <Comments />
         </div>
         
         {/* Sidebar */}
