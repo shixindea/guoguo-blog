@@ -36,6 +36,18 @@ export function Navbar() {
     id: 4,
     title: "排行榜",
     href: "/ranking"
+  }, {
+    id: 5,
+    title: "挑战赛",
+    href: "/challenge"
+  }, {
+    id: 6,
+    title: "工具箱",
+    href: "/tools"
+  }, {
+    id: 7,
+    title: "友链",
+    href: "/links"
   }];
 
   useEffect(() => {
