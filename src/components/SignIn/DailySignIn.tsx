@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 const SIGN_IN_DAYS = [
   { day: 1, reward: 10, signed: true },
@@ -27,6 +28,8 @@ const SIGN_IN_DAYS = [
 export function DailySignIn() {
   const [signed, setSigned] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { checkAuth } = useAuth();
 
   const handleSignIn = () => {
     setSigned(true);
@@ -36,9 +39,16 @@ export function DailySignIn() {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 hidden md:flex">
+        <Button 
+          variant="outline" 
+          className="gap-2 hidden md:flex"
+          onClick={(e) => {
+            e.preventDefault();
+            checkAuth(() => setOpen(true));
+          }}
+        >
           <Calendar className="w-4 h-4" /> 签到
         </Button>
       </DialogTrigger>

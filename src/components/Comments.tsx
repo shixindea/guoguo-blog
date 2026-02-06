@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
 import { ThumbsUp } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export function Comments() {
+  const { user, checkAuth } = useAuth();
   const [comments, setComments] = useState([
     {
       id: 1,
@@ -44,18 +46,20 @@ export function Comments() {
   const [newComment, setNewComment] = useState("");
 
   const handleSubmit = () => {
-    if (!newComment.trim()) return;
-    const comment = {
-      id: Date.now(),
-      author: "我",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Me",
-      date: "刚刚",
-      content: newComment,
-      likes: 0,
-      replies: []
-    };
-    setComments([comment, ...comments]);
-    setNewComment("");
+    checkAuth(() => {
+      if (!newComment.trim()) return;
+      const comment = {
+        id: Date.now(),
+        author: user?.name || "我",
+        avatar: user?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Me",
+        date: "刚刚",
+        content: newComment,
+        likes: 0,
+        replies: []
+      };
+      setComments([comment, ...comments]);
+      setNewComment("");
+    });
   };
 
   return (

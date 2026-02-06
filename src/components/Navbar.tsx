@@ -7,10 +7,14 @@ import { useState, useEffect } from "react";
 import { SearchDropdown } from "@/components/SearchDropdown";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { DailySignIn } from "@/components/SignIn/DailySignIn";
+import { UserHoverCard } from "@/components/UserHoverCard";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
+  const { isAuthenticated, openLoginModal } = useAuth();
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -105,13 +109,16 @@ export function Navbar() {
               <Moon className="w-5 h-5" />
             </button>
             
-            <NotificationPopover />
-
-            <Link href="/dashboard" className="ml-2 w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] cursor-pointer hover:scale-105 transition-transform block">
-              <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" className="w-full h-full object-cover" />
-              </div>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <NotificationPopover />
+                <UserHoverCard />
+              </>
+            ) : (
+              <Button onClick={openLoginModal} className="bg-blue-600 hover:bg-blue-700 text-white">
+                登录 / 注册
+              </Button>
+            )}
           </div>
         </div>
       </div>
