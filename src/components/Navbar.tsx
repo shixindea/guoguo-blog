@@ -4,6 +4,9 @@ import { Search, Bell, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { SearchDropdown } from "@/components/SearchDropdown";
+import { NotificationPopover } from "@/components/NotificationPopover";
+import { DailySignIn } from "@/components/SignIn/DailySignIn";
 
 export function Navbar() {
   const router = useRouter();
@@ -79,27 +82,19 @@ export function Navbar() {
 
         {/* Search & Actions */}
         <div className="flex items-center gap-4">
-          <div className="hidden lg:flex relative group">
-            <input
-              type="text"
-              placeholder="搜索文章、作者、标签..."
-              className="w-64 px-4 py-2 pl-10 bg-slate-100 dark:bg-slate-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all border border-transparent focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900"
-              onKeyDown={handleSearch}
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-blue-500 transition-colors" />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-xs text-slate-500 dark:text-slate-400 font-mono">
-              ⌘K
-            </div>
+          <div className="hidden lg:block">
+             <SearchDropdown />
           </div>
 
           <div className="flex items-center gap-2">
+            <DailySignIn />
+
             <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300">
               <Moon className="w-5 h-5" />
             </button>
-            <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-            </button>
+            
+            <NotificationPopover />
+
             <Link href="/dashboard" className="ml-2 w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] cursor-pointer hover:scale-105 transition-transform block">
               <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" className="w-full h-full object-cover" />

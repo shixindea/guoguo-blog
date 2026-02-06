@@ -1,8 +1,19 @@
 "use client";
 
 import { Eye, ThumbsUp, Users, BookMarked, TrendingUp } from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 
 // Mock Data
+const CHART_DATA = [
+  { date: "Mon", views: 2400, likes: 1400 },
+  { date: "Tue", views: 1398, likes: 980 },
+  { date: "Wed", views: 9800, likes: 3908 },
+  { date: "Thu", views: 3908, likes: 2800 },
+  { date: "Fri", views: 4800, likes: 1890 },
+  { date: "Sat", views: 3800, likes: 2390 },
+  { date: "Sun", views: 4300, likes: 3490 },
+];
+
 const STATS = [
   { label: "文章总阅读", value: "45.2k", change: "+12%", icon: Eye, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-900/20" },
   { label: "获得点赞", value: "2,856", change: "+5%", icon: ThumbsUp, color: "text-red-500", bg: "bg-red-50 dark:bg-red-900/20" },
@@ -52,8 +63,53 @@ export default function DashboardPage() {
         {/* Activity Chart Placeholder */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm min-h-[300px]">
            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">数据趋势</h3>
-           <div className="w-full h-48 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400">
-              Chart Placeholder (Recharts / Chart.js)
+           <div className="w-full h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={CHART_DATA}>
+                  <defs>
+                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#94a3b8', fontSize: 12 }} 
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#94a3b8', fontSize: 12 }} 
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="views" 
+                    stroke="#3b82f6" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorViews)" 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="likes" 
+                    stroke="#ef4444" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorLikes)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
            </div>
         </div>
 
