@@ -43,9 +43,16 @@ public class Category {
   @Column(length = 100)
   private String icon;
 
+  @Column(length = 20)
+  private String color;
+
   @Column(name = "sort_order")
   @Default
   private Integer sortOrder = 0;
+
+  @Column(name = "level")
+  @Default
+  private Integer level = 1;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_id")
@@ -54,6 +61,18 @@ public class Category {
   @Column(name = "article_count")
   @Default
   private Integer articleCount = 0;
+
+  @Column(name = "is_system")
+  @Default
+  private Boolean system = false;
+
+  @Column(name = "is_enabled")
+  @Default
+  private Boolean enabled = true;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "created_by")
+  private User createdBy;
 
   @CreationTimestamp
   @Column(name = "created_at", updatable = false)

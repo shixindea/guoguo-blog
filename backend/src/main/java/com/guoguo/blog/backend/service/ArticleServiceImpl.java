@@ -14,6 +14,7 @@ import com.guoguo.blog.backend.entity.ArticleLike;
 import com.guoguo.blog.backend.entity.ArticleReadHistory;
 import com.guoguo.blog.backend.entity.ArticleStatus;
 import com.guoguo.blog.backend.entity.ArticleTag;
+import com.guoguo.blog.backend.entity.ArticleTag;
 import com.guoguo.blog.backend.entity.ArticleVisibility;
 import com.guoguo.blog.backend.entity.Category;
 import com.guoguo.blog.backend.entity.Tag;
@@ -230,6 +231,15 @@ public class ArticleServiceImpl implements ArticleService {
           if (userId != null) {
             predicates.add(cb.equal(root.get("author").get("id"), userId));
           }
+          if (tagId != null) {
+            var subquery = query.subquery(Long.class);
+            var articleTag = subquery.from(ArticleTag.class);
+            subquery.select(articleTag.get("id"));
+            subquery.where(
+                cb.equal(articleTag.get("article").get("id"), root.get("id")),
+                cb.equal(articleTag.get("tag").get("id"), tagId));
+            predicates.add(cb.exists(subquery));
+          }
 
           ArticleStatus statusEnum = resolveStatusNullable(status);
           if (statusEnum != null) {
@@ -271,13 +281,6 @@ public class ArticleServiceImpl implements ArticleService {
                         .createdAt(a.getCreatedAt())
                         .build())
             .collect(Collectors.toList());
-
-    if (tagId != null) {
-      list =
-          list.stream()
-              .filter(item -> item.getTags().stream().anyMatch(t -> Objects.equals(t.getId(), tagId)))
-              .collect(Collectors.toList());
-    }
 
     return PageResponse.<ArticleListItem>builder()
         .page(page)
@@ -503,6 +506,7 @@ public class ArticleServiceImpl implements ArticleService {
             case "publishedAt", "published_at" -> "publishedAt";
             case "viewCount", "view_count" -> "viewCount";
             case "likeCount", "like_count" -> "likeCount";
+            case "commentCount", "comment_count" -> "commentCount";
             default -> "createdAt";
           };
     }
@@ -602,4 +606,3 @@ public class ArticleServiceImpl implements ArticleService {
         .build();
   }
 }
-

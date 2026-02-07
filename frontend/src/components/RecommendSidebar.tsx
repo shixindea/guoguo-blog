@@ -10,7 +10,7 @@ export function RecommendSidebar() {
   const [trending, setTrending] = useState<ArticleListItem[]>([]);
 
   useEffect(() => {
-    articleApi.trending({ limit: 4 }).then(setTrending);
+    articleApi.trending({ limit: 4 }).then(setTrending).catch(() => setTrending([]));
   }, []);
 
   return (
@@ -19,6 +19,9 @@ export function RecommendSidebar() {
       <div className="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-800">
         <h3 className="font-bold text-slate-900 dark:text-white mb-4 border-l-4 border-blue-600 pl-3">为你推荐</h3>
         <ul className="space-y-4">
+          {trending.length === 0 && (
+            <li className="text-sm text-slate-500 dark:text-slate-400">暂无推荐内容</li>
+          )}
           {trending.map((item) => (
             <li key={item.id} className="group flex gap-3 items-start">
               <Link href={`/article/${item.id}`} className="flex gap-3 items-start w-full">

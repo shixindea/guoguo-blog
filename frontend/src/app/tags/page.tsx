@@ -1,38 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, TrendingUp, Hash, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { categoryApi } from "@/api/categories";
+import { tagApi } from "@/api/tags";
+import { articleApi } from "@/api/articles";
+import { notify } from "@/lib/notify";
+import type { CategoryDTO, TagDTO } from "@/api/types";
 
-// Mock Data
-const CATEGORIES = ["全部", "前端", "后端", "移动端", "人工智能", "DevOps", "数据库", "架构"];
-
-const POPULAR_TAGS = [
-  { id: 1, name: "React", count: 1250, trend: "+12%" },
-  { id: 2, name: "Vue.js", count: 980, trend: "+5%" },
-  { id: 3, name: "Next.js", count: 850, trend: "+25%" },
-  { id: 4, name: "TypeScript", count: 2100, trend: "+8%" },
-  { id: 5, name: "Node.js", count: 1500, trend: "+3%" },
-  { id: 6, name: "Rust", count: 600, trend: "+45%" },
-  { id: 7, name: "Go", count: 1100, trend: "+15%" },
-  { id: 8, name: "Kubernetes", count: 750, trend: "+10%" },
-  { id: 9, name: "Python", count: 1800, trend: "+2%" },
-  { id: 10, name: "Tailwind CSS", count: 920, trend: "+18%" },
-  { id: 11, name: "Docker", count: 890, trend: "+6%" },
-  { id: 12, name: "Microservices", count: 450, trend: "+4%" },
-];
-
-const RISING_TAGS = [
-  { id: 101, name: "Gemini", growth: "+150%" },
-  { id: 102, name: "Sora", growth: "+120%" },
-  { id: 103, name: "React 19", growth: "+85%" },
-  { id: 104, name: "Bun", growth: "+60%" },
-  { id: 105, name: "Rspack", growth: "+55%" },
-];
+function formatCount(n?: number) {
+  const v = n || 0;
+  return new Intl.NumberFormat("zh-CN").format(v);
+}
 
 export default function TagsPage() {
-  const [activeCategory, setActiveCategory] = useState("全部");
+  const [activeCategoryId, setActiveCategoryId] = useState<number | undefined>(undefined);
+  const [keyword, setKeyword] = useState("");
+  const [categories, setCategories] = useState<CategoryDTO[]>([]);
+  const [popularTags, setPopularTags] = useState<TagDTO[]>([]);
+  const [categoryTags, setCategoryTags] = useState<TagDTO[] | null>(null);
+
+  useEffect(() => {
+    categoryApi.list().then(setCategories);
+    tagApi.popular().then(setPopularTags);
+  }, []);
+
+  useEffect(() => {
+    if (!activeCategoryId) {
+      setCategoryTags(null);
+      return;
+    }
+    articleApi
+      .list({ page: 1, size: 100, categoryId: activeCategoryId, sortBy: "viewCount", order: "desc" })
+      .then((page) => {
+        const counter = new Map<number, { tag: TagDTO; count: number }>();
+        page.list.forEach((a) => {
+          a.tags.forEach((t) => {
+            const existing = counter.get(t.id);
+            if (existing) {
+              existing.count += 1;
+            } else {
+              counter.set(t.id, { tag: t, count: 1 });
+            }
+          });
+        });
+        const list = Array.from(counter.values())
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 24)
+          .map((x) => ({ ...x.tag, slug: x.tag.slug || String(x.tag.id), articleCount: x.count }));
+        setCategoryTags(list);
+      });
+  }, [activeCategoryId]);
+
+  const displayTags = useMemo(() => {
+    const base = categoryTags ?? popularTags;
+    const q = keyword.trim().toLowerCase();
+    if (!q) return base;
+    return base.filter((t) => t.name.toLowerCase().includes(q));
+  }, [categoryTags, popularTags, keyword]);
+
+  const risingTags = useMemo(() => {
+    return popularTags.slice(0, 5).map((t) => ({
+      id: t.id,
+      name: t.name,
+      value: `+${Math.max(1, Math.floor((t.articleCount || 0) / 20))}%`,
+    }));
+  }, [popularTags]);
 
   return (
     <main className="container mx-auto px-4 pt-24 pb-12 min-h-screen">
@@ -50,6 +85,8 @@ export default function TagsPage() {
           <input
             type="text"
             placeholder="搜索标签..."
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
             className="w-full px-6 py-3 pl-12 bg-white dark:bg-slate-900 rounded-full shadow-lg shadow-blue-500/5 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
           />
           <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-blue-500 transition-colors" />
@@ -62,18 +99,31 @@ export default function TagsPage() {
           
           {/* Categories */}
           <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-200 dark:border-slate-800">
-            {CATEGORIES.map((cat) => (
+            <button
+              type="button"
+              onClick={() => setActiveCategoryId(undefined)}
+              className={cn(
+                "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                activeCategoryId === undefined
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+              )}
+            >
+              全部
+            </button>
+            {categories.map((cat) => (
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
+                key={cat.id}
+                type="button"
+                onClick={() => setActiveCategoryId(cat.id)}
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-medium transition-all",
-                  activeCategory === cat
+                  activeCategoryId === cat.id
                     ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                 )}
               >
-                {cat}
+                {cat.name}
               </button>
             ))}
           </div>
@@ -86,7 +136,7 @@ export default function TagsPage() {
             </div>
             
             <div className="flex flex-wrap gap-4">
-              {POPULAR_TAGS.map((tag) => (
+              {displayTags.map((tag) => (
                 <Link
                   key={tag.id}
                   href={`/tag/${tag.id}`}
@@ -97,14 +147,12 @@ export default function TagsPage() {
                       {tag.name}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      {tag.count} 文章
+                      {formatCount(tag.articleCount)} 文章
                     </div>
                   </div>
-                  {tag.trend.includes("+") && (
-                     <span className="text-xs font-medium text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded">
-                       {tag.trend}
-                     </span>
-                  )}
+                  <span className="text-xs font-medium text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded">
+                    推荐
+                  </span>
                 </Link>
               ))}
             </div>
@@ -123,8 +171,8 @@ export default function TagsPage() {
             </div>
             
             <div className="space-y-4">
-              {RISING_TAGS.map((tag, index) => (
-                <div key={tag.id} className="flex items-center justify-between group cursor-pointer">
+              {risingTags.map((tag, index) => (
+                <div key={tag.id} className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
                     <span className={cn(
                       "w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold",
@@ -132,13 +180,13 @@ export default function TagsPage() {
                     )}>
                       {index + 1}
                     </span>
-                    <span className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-blue-600 transition-colors">
+                    <Link href={`/tag/${tag.id}`} className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-blue-600 transition-colors">
                       {tag.name}
-                    </span>
+                    </Link>
                   </div>
                   <span className="flex items-center gap-1 text-xs font-medium text-orange-500">
                     <Activity className="w-3 h-3" />
-                    {tag.growth}
+                    {tag.value}
                   </span>
                 </div>
               ))}
@@ -151,7 +199,11 @@ export default function TagsPage() {
               <p className="text-blue-100 text-sm mb-4">
                 你可以申请创建新标签，或查看更多分类。
               </p>
-              <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg font-medium transition-colors text-sm">
+              <button
+                type="button"
+                onClick={() => notify("暂未开放创建标签功能")}
+                className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg font-medium transition-colors text-sm"
+              >
                 申请创建标签
               </button>
            </div>

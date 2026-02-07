@@ -1,7 +1,8 @@
 package com.guoguo.blog.backend.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,34 +12,27 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "标签信息")
-public class TagDTO {
-  @Schema(description = "标签ID")
-  private Long id;
-
+@Schema(description = "更新标签请求")
+public class UpdateTagRequest {
+  @Size(min = 1, max = 50, message = "标签名称长度1-50位")
   @Schema(description = "标签名称")
   private String name;
 
+  @Pattern(regexp = "^[a-z0-9-]+$", message = "标签标识只能包含小写字母、数字和连字符")
   @Schema(description = "标签slug")
   private String slug;
 
-  @Schema(description = "标签描述")
+  @Schema(description = "描述")
   private String description;
 
-  @Schema(description = "标签图标")
+  @Schema(description = "图标")
   private String icon;
 
-  @Schema(description = "标签颜色")
+  @Schema(description = "颜色")
   private String color;
 
-  @Schema(description = "标签样式")
+  @Schema(description = "样式")
   private String style;
-
-  @Schema(description = "文章数")
-  private Integer articleCount;
-
-  @Schema(description = "浏览数")
-  private Integer viewCount;
 
   @Schema(description = "是否推荐")
   private Boolean recommended;
@@ -46,15 +40,6 @@ public class TagDTO {
   @Schema(description = "是否热门")
   private Boolean hot;
 
-  @Schema(description = "是否系统标签")
-  private Boolean system;
-
   @Schema(description = "是否启用")
   private Boolean enabled;
-
-  @Schema(description = "当前用户是否关注")
-  private Boolean following;
-
-  @Schema(description = "创建时间")
-  private LocalDateTime createdAt;
 }

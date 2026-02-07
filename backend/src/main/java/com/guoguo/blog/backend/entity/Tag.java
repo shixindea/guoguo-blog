@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -50,6 +52,29 @@ public class Tag {
   @Column(name = "is_recommended")
   @Default
   private Boolean recommended = false;
+
+  @Column(name = "is_hot")
+  @Default
+  private Boolean hot = false;
+
+  @Column(name = "is_system")
+  @Default
+  private Boolean system = false;
+
+  @Column(name = "is_enabled")
+  @Default
+  private Boolean enabled = true;
+
+  @Column(length = 20)
+  private String style;
+
+  @Column(name = "view_count")
+  @Default
+  private Integer viewCount = 0;
+
+  @ManyToOne
+  @JoinColumn(name = "created_by")
+  private User createdBy;
 
   @CreationTimestamp
   @Column(name = "created_at", updatable = false)

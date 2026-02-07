@@ -1,7 +1,7 @@
 "use client";
-import { ThumbsUp, MessageSquare, Eye } from "lucide-react";
+import { ThumbsUp, Eye } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { articleApi } from "@/api/articles";
 import type { ArticleListItem, PageResponse } from "@/api/types";
 
@@ -39,29 +39,104 @@ function formatRelative(iso?: string) {
 
 export function ArticleList({ articles, showFilter = true, query }: ArticleListProps) {
   const [page, setPage] = useState<PageResponse<ArticleListItem> | null>(null);
+  const [items, setItems] = useState<ArticleListItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<string | undefined>(query?.sortBy);
+  const [order, setOrder] = useState<string | undefined>(query?.order);
   const [loading, setLoading] = useState(false);
 
   const effectiveQuery = useMemo(() => query || {}, [query]);
+  const queryKey = useMemo(() => {
+    return [
+      effectiveQuery.status ?? "",
+      effectiveQuery.categoryId ?? "",
+      effectiveQuery.tagId ?? "",
+      effectiveQuery.userId ?? "",
+      effectiveQuery.keyword ?? "",
+      effectiveQuery.sortBy ?? "",
+      effectiveQuery.order ?? "",
+      showFilter ? "1" : "0",
+    ].join("|");
+  }, [effectiveQuery, showFilter]);
+
+  useEffect(() => {
+    if (!showFilter) {
+      setSortBy(effectiveQuery.sortBy);
+      setOrder(effectiveQuery.order);
+      return;
+    }
+    const s = effectiveQuery.sortBy;
+    if (s === "publishedAt" || s === "published_at") {
+      setSortBy("publishedAt");
+      setOrder("desc");
+    } else if (s) {
+      setSortBy(s);
+      setOrder(effectiveQuery.order || "desc");
+    } else {
+      setSortBy("viewCount");
+      setOrder("desc");
+    }
+  }, [effectiveQuery.sortBy, effectiveQuery.order, showFilter]);
+
+  const loadPage = useCallback((pageNo: number, mode: "replace" | "append") => {
+    setLoading(true);
+    return articleApi
+      .list({
+        page: pageNo,
+        size: 20,
+        sortBy: sortBy,
+        order: order,
+        status: effectiveQuery.status,
+        categoryId: effectiveQuery.categoryId,
+        tagId: effectiveQuery.tagId,
+        userId: effectiveQuery.userId,
+        keyword: effectiveQuery.keyword,
+      })
+      .then((res) => {
+        setPage(res);
+        setCurrentPage(pageNo);
+        if (mode === "append") {
+          setItems((prev) => [...prev, ...res.list]);
+        } else {
+          setItems(res.list);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [effectiveQuery.categoryId, effectiveQuery.keyword, effectiveQuery.status, effectiveQuery.tagId, effectiveQuery.userId, order, sortBy]);
 
   useEffect(() => {
     if (articles) return;
-    setLoading(true);
-    articleApi
-      .list({ page: 1, size: 20, sortBy: effectiveQuery.sortBy, order: effectiveQuery.order, status: effectiveQuery.status, categoryId: effectiveQuery.categoryId, tagId: effectiveQuery.tagId, userId: effectiveQuery.userId, keyword: effectiveQuery.keyword })
-      .then(setPage)
-      .finally(() => setLoading(false));
-  }, [articles, effectiveQuery]);
+    loadPage(1, "replace");
+  }, [articles, loadPage, queryKey, sortBy, order]);
 
-  const list = articles || page?.list || [];
+  const list = articles || (items.length ? items : page?.list || []);
+  const total = page?.total || 0;
+  const hasMore = !articles && total > 0 && list.length < total;
+  const hotActive = showFilter && (sortBy === "viewCount" || sortBy === "likeCount");
+  const newActive = showFilter && sortBy === "publishedAt";
   return (
     <div className="space-y-4">
         {showFilter && (
         <div className="flex items-center gap-6 mb-4 bg-white dark:bg-slate-900 px-6 py-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
-            <button className="flex items-center gap-2 text-blue-600 font-bold text-sm relative">
+            <button
+              type="button"
+              className={`flex items-center gap-2 font-bold text-sm relative ${hotActive ? "text-blue-600" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"}`}
+              onClick={() => {
+                setSortBy("viewCount");
+                setOrder("desc");
+              }}
+            >
                 <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-4 bg-blue-600 rounded-full"></span>
                 🔥 热门推荐
             </button>
-            <button className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 text-sm transition-colors">
+            <button
+              type="button"
+              className={`flex items-center gap-2 text-sm transition-colors ${newActive ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"}`}
+              onClick={() => {
+                setSortBy("publishedAt");
+                setOrder("desc");
+              }}
+            >
                 🕒 最新发布
             </button>
         </div>
@@ -102,9 +177,9 @@ export function ArticleList({ articles, showFilter = true, query }: ArticleListP
                 <div className="flex items-center justify-between">
                 <div className="flex gap-2">
                     {article.tags.map(tag => (
-                        <span key={tag.id} className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 transition-colors border border-slate-100 dark:border-slate-700">
+                        <Link key={tag.id} href={`/tag/${tag.id}`} className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 transition-colors border border-slate-100 dark:border-slate-700">
                             {tag.name}
-                        </span>
+                        </Link>
                     ))}
                 </div>
                 
@@ -126,9 +201,16 @@ export function ArticleList({ articles, showFilter = true, query }: ArticleListP
       
       {/* Skeleton / Loading more */}
       <div className="py-6 flex justify-center">
-        <button className="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-sm text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors shadow-sm">
-            加载更多内容
-        </button>
+        {!articles && (
+          <button
+            type="button"
+            className="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-sm text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !hasMore}
+            onClick={() => loadPage(currentPage + 1, "append")}
+          >
+            {hasMore ? (loading ? "加载中..." : "加载更多内容") : "没有更多了"}
+          </button>
+        )}
       </div>
     </div>
   );

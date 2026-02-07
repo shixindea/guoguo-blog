@@ -19,6 +19,7 @@ export default function PublishClient() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [summary, setSummary] = useState("");
+  const [coverImage, setCoverImage] = useState<string>("");
   const [visibility, setVisibility] = useState<ArticleVisibility>("PUBLIC");
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [tagIds, setTagIds] = useState<number[]>([]);
@@ -50,6 +51,7 @@ export default function PublishClient() {
           setTitle(a.title);
           setContent(a.content);
           setSummary(a.summary || "");
+          setCoverImage(a.coverImage || "");
           setVisibility(a.visibility);
           setCategoryId(a.category?.id);
           setTagIds(a.tags.map((t) => t.id));
@@ -63,6 +65,7 @@ export default function PublishClient() {
       const payload = {
         title,
         content,
+        coverImage: coverImage || undefined,
         summary: summary || undefined,
         status: "DRAFT" as const,
         visibility,
@@ -84,6 +87,7 @@ export default function PublishClient() {
       const payload = {
         title,
         content,
+        coverImage: coverImage || undefined,
         summary: summary || undefined,
         status: "PUBLISHED" as const,
         visibility,
@@ -185,14 +189,37 @@ export default function PublishClient() {
         </div>
       </header>
 
-      <div className="flex-1 flex max-w-[1600px] mx-auto w-full">
-        <aside className="w-80 border-r border-slate-200 dark:border-slate-800 p-6 hidden lg:block bg-white dark:bg-slate-900 h-[calc(100vh-8rem)] sticky top-32 overflow-y-auto scrollbar-hide">
+      <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] mx-auto w-full">
+        <aside className="w-full lg:w-80 lg:border-r border-slate-200 dark:border-slate-800 p-6 bg-white dark:bg-slate-900 lg:h-[calc(100vh-8rem)] lg:sticky lg:top-32 overflow-y-auto scrollbar-hide border-b lg:border-b-0">
           <div className="space-y-8">
             <div className="space-y-3">
               <Label className="text-base font-semibold">文章封面</Label>
-              <div className="aspect-video bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-500 transition-all group">
-                <ImageIcon className="w-10 h-10 mb-3 group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium">点击上传封面</span>
+              <div className="space-y-2">
+                <div className="aspect-video bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex items-center justify-center">
+                  {coverImage ? (
+                    <img src={coverImage} alt="cover" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-slate-400">
+                      <ImageIcon className="w-10 h-10 mb-3" />
+                      <span className="text-sm font-medium">粘贴封面图片链接</span>
+                    </div>
+                  )}
+                </div>
+                <Input
+                  className="h-10"
+                  placeholder="封面 URL（http(s)）"
+                  value={coverImage}
+                  onChange={(e) => setCoverImage(e.target.value)}
+                />
+                {coverImage && (
+                  <button
+                    type="button"
+                    className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                    onClick={() => setCoverImage("")}
+                  >
+                    清除封面
+                  </button>
+                )}
               </div>
             </div>
 
@@ -240,6 +267,27 @@ export default function PublishClient() {
                     <option key={t.id} value={t.name} />
                   ))}
                 </datalist>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {popularTags.slice(0, 16).map((t) => {
+                  const active = tagIds.includes(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        active
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-300 hover:text-blue-600"
+                      }`}
+                      onClick={() =>
+                        setTagIds((prev) => (prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id]))
+                      }
+                    >
+                      {t.name}
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
                 {tagIds.map((id) => {

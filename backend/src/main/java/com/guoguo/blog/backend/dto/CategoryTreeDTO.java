@@ -1,7 +1,7 @@
 package com.guoguo.blog.backend.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "分类信息")
-public class CategoryDTO {
+@Schema(description = "分类树节点")
+public class CategoryTreeDTO {
   @Schema(description = "分类ID")
   private Long id;
 
@@ -21,9 +21,6 @@ public class CategoryDTO {
 
   @Schema(description = "分类slug")
   private String slug;
-
-  @Schema(description = "分类描述")
-  private String description;
 
   @Schema(description = "分类图标")
   private String icon;
@@ -34,21 +31,12 @@ public class CategoryDTO {
   @Schema(description = "排序")
   private Integer sortOrder;
 
-  @Schema(description = "父分类ID")
-  private Long parentId;
-
-  @Schema(description = "层级")
-  private Integer level;
-
   @Schema(description = "文章数")
   private Integer articleCount;
-
-  @Schema(description = "是否系统分类")
-  private Boolean system;
 
   @Schema(description = "是否启用")
   private Boolean enabled;
 
-  @Schema(description = "创建时间")
-  private LocalDateTime createdAt;
+  @Schema(description = "子分类")
+  private List<CategoryTreeDTO> children;
 }
