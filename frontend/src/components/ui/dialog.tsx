@@ -33,10 +33,14 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
 
 type AsChildProps = { asChild?: boolean };
 
-const DialogTrigger = ({ asChild, children }: AsChildProps & { children: React.ReactElement<any> }) => {
+type ClickableChildProps = {
+  onClick?: (e: React.MouseEvent<unknown>) => void;
+};
+
+const DialogTrigger = ({ asChild, children }: AsChildProps & { children: React.ReactElement }) => {
   const { onOpenChange } = useDialogContext();
-  const child = React.Children.only(children) as React.ReactElement<any>;
-  const next = React.cloneElement(child, {
+  const child = React.Children.only(children) as React.ReactElement<ClickableChildProps>;
+  const next = React.cloneElement<ClickableChildProps>(child, {
     onClick: (e: React.MouseEvent<unknown>) => {
       child.props.onClick?.(e);
       if (e.defaultPrevented) return;
@@ -68,10 +72,10 @@ const DialogOverlay = ({ className, ...props }: React.HTMLAttributes<HTMLDivElem
   );
 };
 
-const DialogClose = ({ asChild, children }: AsChildProps & { children: React.ReactElement<any> }) => {
+const DialogClose = ({ asChild, children }: AsChildProps & { children: React.ReactElement }) => {
   const { onOpenChange } = useDialogContext();
-  const child = React.Children.only(children) as React.ReactElement<any>;
-  const next = React.cloneElement(child, {
+  const child = React.Children.only(children) as React.ReactElement<ClickableChildProps>;
+  const next = React.cloneElement<ClickableChildProps>(child, {
     onClick: (e: React.MouseEvent<unknown>) => {
       child.props.onClick?.(e);
       if (e.defaultPrevented) return;

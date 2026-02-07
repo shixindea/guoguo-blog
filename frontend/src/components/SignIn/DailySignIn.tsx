@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar, Gift, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,29 +14,72 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-
-const SIGN_IN_DAYS = [
-  { day: 1, reward: 10, signed: true },
-  { day: 2, reward: 10, signed: true },
-  { day: 3, reward: 20, signed: false }, // Today
-  { day: 4, reward: 10, signed: false },
-  { day: 5, reward: 10, signed: false },
-  { day: 6, reward: 10, signed: false },
-  { day: 7, reward: 50, signed: false, isBigReward: true },
-];
+import { checkinApi } from "@/api/checkins";
+import type { CheckinCalendarDTO, CheckinStatusDTO } from "@/api/types";
 
 export function DailySignIn() {
   const [signed, setSigned] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [open, setOpen] = useState(false);
   const { checkAuth } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<CheckinStatusDTO | null>(null);
+  const [calendar, setCalendar] = useState<CheckinCalendarDTO | null>(null);
+  const [earnedPoints, setEarnedPoints] = useState(0);
 
   const handleSignIn = () => {
-    setSigned(true);
-    setShowAnimation(true);
-    // In a real app, call API here
-    setTimeout(() => setShowAnimation(false), 3000);
+    checkAuth(async () => {
+      setLoading(true);
+      try {
+        const res = await checkinApi.checkin({ method: "WEB" });
+        setStatus(res.status);
+        setSigned(true);
+        setEarnedPoints(res.totalPoints);
+        setShowAnimation(true);
+        const ym = res.checkinDate.slice(0, 7);
+        const cal = await checkinApi.calendar({ yearMonth: ym });
+        setCalendar(cal);
+        setTimeout(() => setShowAnimation(false), 2500);
+      } finally {
+        setLoading(false);
+      }
+    });
   };
+
+  useEffect(() => {
+    if (!open) return;
+    checkAuth(async () => {
+      setLoading(true);
+      try {
+        const s = await checkinApi.status();
+        setStatus(s);
+        setSigned(s.todayChecked);
+        const now = new Date();
+        const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const cal = await checkinApi.calendar({ yearMonth: ym });
+        setCalendar(cal);
+      } finally {
+        setLoading(false);
+      }
+    });
+  }, [open, checkAuth]);
+
+  const weekItems = useMemo(() => {
+    const currentStreak = status?.currentStreak || 0;
+    const todayChecked = !!status?.todayChecked;
+    const claimed = Math.min(currentStreak, 7);
+    return Array.from({ length: 7 }).map((_, idx) => {
+      const day = idx + 1;
+      const signedDay = day <= claimed;
+      const isToday = day === claimed + 1 && !todayChecked;
+      const isBigReward = day === 7;
+      const reward = isBigReward ? 50 : day === 3 ? 20 : 10;
+      return { day, reward, signed: signedDay, isToday, isBigReward };
+    });
+  }, [status]);
+
+  const currentStreak = status?.currentStreak || 0;
+  const progress = Math.min(100, (Math.min(currentStreak, 7) / 7) * 100);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -67,21 +110,27 @@ export function DailySignIn() {
            {/* Progress */}
            <div className="mb-6 space-y-2">
               <div className="flex justify-between text-sm">
-                 <span className="text-slate-500">已连续签到 2 天</span>
-                 <span className="text-slate-900 font-medium">2/7</span>
+                 <span className="text-slate-500">已连续签到 {currentStreak} 天</span>
+                 <span className="text-slate-900 font-medium">{Math.min(currentStreak, 7)}/7</span>
               </div>
-              <Progress value={28} className="h-2" />
+              <Progress value={progress} className="h-2" />
+              {calendar && (
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>本月已签 {calendar.monthDays} 天</span>
+                  <span>本月积分 {calendar.monthPoints}</span>
+                </div>
+              )}
            </div>
 
            {/* Grid */}
            <div className="grid grid-cols-4 gap-3 mb-6">
-              {SIGN_IN_DAYS.map((item, index) => (
+              {weekItems.map((item) => (
                  <div 
                    key={item.day}
                    className={cn(
                      "flex flex-col items-center justify-center p-2 rounded-lg border text-sm relative overflow-hidden",
                      item.signed ? "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800" : 
-                     (index === 2 && !signed) ? "border-blue-500 ring-1 ring-blue-500" :
+                     (item.isToday && !signed) ? "border-blue-500 ring-1 ring-blue-500" :
                      "border-slate-100 bg-slate-50 text-slate-400 dark:border-slate-800 dark:bg-slate-900"
                    )}
                  >
@@ -103,9 +152,9 @@ export function DailySignIn() {
            <Button 
              className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
              onClick={handleSignIn}
-             disabled={signed}
+             disabled={signed || loading}
            >
-             {signed ? "今日已签到" : "立即签到领取 20 积分"}
+             {signed ? "今日已签到" : loading ? "签到中..." : "立即签到"}
            </Button>
         </div>
         
@@ -114,7 +163,7 @@ export function DailySignIn() {
            <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-50 rounded-lg flex-col animate-in fade-in zoom-in duration-300">
               <Gift className="w-16 h-16 text-orange-500 mb-4 animate-bounce" />
               <h3 className="text-2xl font-bold text-orange-500">签到成功!</h3>
-              <p className="text-slate-600 dark:text-slate-300 font-medium">+20 积分</p>
+              <p className="text-slate-600 dark:text-slate-300 font-medium">+{earnedPoints} 积分</p>
            </div>
         )}
 

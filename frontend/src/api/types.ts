@@ -44,6 +44,45 @@ export interface PageResponse<T> {
   list: T[];
 }
 
+export type CheckinMethod = "WEB" | "MOBILE" | "SHAKE" | "WIDGET" | "API";
+
+export interface CheckinRequest {
+  method?: CheckinMethod;
+  deviceInfo?: string;
+}
+
+export interface CheckinStatusDTO {
+  todayChecked: boolean;
+  currentStreak: number;
+  longestStreak: number;
+  totalCheckinDays: number;
+  totalPointsEarned: number;
+  currentMonthDays: number;
+  currentMonthPoints: number;
+  makeupCardsAvailable: number;
+  lastCheckinDate?: string;
+}
+
+export interface CheckinCalendarDTO {
+  year: number;
+  month: number;
+  checkinDays: number[];
+  monthDays: number;
+  monthPoints: number;
+  currentStreak: number;
+}
+
+export interface CheckinResultDTO {
+  checkinDate: string;
+  basePoints: number;
+  extraPoints: number;
+  totalPoints: number;
+  rewardType: string;
+  continuousDays: number;
+  makeupCardsAvailable: number;
+  status: CheckinStatusDTO;
+}
+
 export interface TagDTO {
   id: number;
   name: string;

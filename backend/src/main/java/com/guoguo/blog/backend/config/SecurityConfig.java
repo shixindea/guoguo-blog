@@ -56,6 +56,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.GET, "/api/articles/drafts")
                     .authenticated()
+                    .requestMatchers("/api/checkins/**")
+                    .authenticated()
                     .requestMatchers(
                         "/api/auth/**",
                         "/api/categories/**",
