@@ -21,7 +21,7 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET:ZG9uJ3QtdXNlLXRoaXMtaW4tcHJvZC0zMi1ieXRlLXNlY3JldA==}
-    access-token-expiration-ms: 3600000
+    access-token-expiration-ms: 36000000
     refresh-token-expiration-ms: 604800000
 
 springdoc:

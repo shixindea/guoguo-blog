@@ -13,6 +13,7 @@ import com.guoguo.blog.backend.security.JwtTokenProvider;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,9 @@ public class AuthServiceImpl implements AuthService {
   private final PasswordEncoder passwordEncoder;
   private final AuthenticationManager authenticationManager;
   private final JwtTokenProvider jwtTokenProvider;
+
+  @Value("${app.jwt.access-token-expiration-ms}")
+  private long accessTokenExpirationMs;
 
   @Override
   public AuthResponse register(RegisterRequest request) {
@@ -106,9 +110,8 @@ public class AuthServiceImpl implements AuthService {
         .user(userDTO)
         .accessToken(accessToken)
         .refreshToken(refreshToken)
-        .expiresIn(3600L)
+        .expiresIn(Math.max(accessTokenExpirationMs / 1000L, 1L))
         .tokenType("Bearer")
         .build();
   }
 }
-

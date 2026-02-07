@@ -24,6 +24,7 @@ interface AuthContextType {
   logout: () => void;
   checkAuth: (callback: () => void) => void;
   openLoginModal: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +54,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     return () => setUnauthorizedHandler(null);
   }, []);
+
+  const refreshUser = async () => {
+    const me = await authApi.me();
+    const mapped = mapUser(me);
+    setUser(mapped);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user", JSON.stringify(mapped));
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -167,6 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         checkAuth,
         openLoginModal,
+        refreshUser,
       }}
     >
       {children}
