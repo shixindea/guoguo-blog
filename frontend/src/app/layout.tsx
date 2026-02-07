@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { GlobalApiTooltip } from "@/components/GlobalApiTooltip";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,6 +34,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <Navbar />
+          <GlobalApiTooltip />
           {children}
           <Footer />
         </AuthProvider>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   BookMarked, 
@@ -12,6 +12,7 @@ import {
   LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "数据概览", icon: LayoutDashboard },
@@ -28,6 +29,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
 
   return (
     <div className="container mx-auto px-4 pt-24 pb-12 min-h-screen">
@@ -40,11 +43,11 @@ export default function DashboardLayout({
             <div className="flex flex-col items-center mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] mb-4">
                  <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" className="w-full h-full object-cover" />
+                    <img src={user?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} alt="User" className="w-full h-full object-cover" />
                  </div>
                </div>
-               <h2 className="text-xl font-bold text-slate-900 dark:text-white">张晓明</h2>
-               <p className="text-sm text-slate-500">资深前端工程师</p>
+               <h2 className="text-xl font-bold text-slate-900 dark:text-white">{user?.name || "未登录"}</h2>
+               <p className="text-sm text-slate-500">{user?.email || "请先登录后使用控制台"}</p>
             </div>
 
             {/* Navigation */}
@@ -71,7 +74,14 @@ export default function DashboardLayout({
             </nav>
 
              <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-medium text-sm">
+                <button
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-medium text-sm"
+                  onClick={() => {
+                    logout();
+                    router.push("/");
+                    router.refresh();
+                  }}
+                >
                    <LogOut className="w-5 h-5" />
                    退出登录
                 </button>

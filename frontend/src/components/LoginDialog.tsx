@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,15 +24,42 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const { login, register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const [error, setError] = useState<string | null>(null);
+
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const [regEmail, setRegEmail] = useState("");
+  const [regUsername, setRegUsername] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirm, setRegConfirm] = useState("");
+  const [regAgree, setRegAgree] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     try {
       if (activeTab === "login") {
-        await login({});
+        await login({ email: loginEmail, password: loginPassword });
       } else {
-        await register({ email: "test@example.com" });
+        await register({
+          email: regEmail,
+          username: regUsername,
+          password: regPassword,
+          confirmPassword: regConfirm,
+          agreeToTerms: regAgree,
+        });
+      }
+      onOpenChange(false);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const data = err.response?.data;
+        const serverMessage =
+          data && typeof data === "object" && "message" in data ? String((data as { message: unknown }).message) : "";
+        setError(serverMessage || err.message || (activeTab === "login" ? "登录失败" : "注册失败"));
+      } else {
+        setError(activeTab === "login" ? "登录失败" : "注册失败");
       }
     } finally {
       setIsLoading(false);
@@ -50,7 +77,15 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         </div>
 
         <div className="p-6">
-          <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            defaultValue="login"
+            value={activeTab}
+            onValueChange={(v) => {
+              setActiveTab(v);
+              setError(null);
+            }}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">登录</TabsTrigger>
               <TabsTrigger value="register">注册</TabsTrigger>
@@ -60,33 +95,87 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
               <TabsContent value="login" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">邮箱 / 用户名</Label>
-                  <Input id="email" placeholder="name@example.com" required />
+                  <Input
+                    id="email"
+                    placeholder="name@example.com"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">密码</Label>
                     <span className="text-xs text-blue-600 cursor-pointer hover:underline">忘记密码?</span>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                  />
                 </div>
               </TabsContent>
               
               <TabsContent value="register" className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="register-username">用户名</Label>
+                  <Input
+                    id="register-username"
+                    placeholder="guoguo"
+                    value={regUsername}
+                    onChange={(e) => setRegUsername(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="register-email">邮箱</Label>
-                  <Input id="register-email" placeholder="name@example.com" required />
+                  <Input
+                    id="register-email"
+                    placeholder="name@example.com"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-password">设置密码</Label>
-                  <Input id="register-password" type="password" required />
+                  <Input
+                    id="register-password"
+                    type="password"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">确认密码</Label>
-                  <Input id="confirm-password" type="password" required />
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={regConfirm}
+                    onChange={(e) => setRegConfirm(e.target.value)}
+                    required
+                  />
                 </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={regAgree}
+                    onChange={(e) => setRegAgree(e.target.checked)}
+                  />
+                  同意用户协议
+                </label>
               </TabsContent>
 
               <div className="mt-6 space-y-4">
+                {error && (
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 px-3 py-2 rounded-lg">
+                    {error}
+                  </div>
+                )}
                 <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   {activeTab === "login" ? "立即登录" : "创建账号"}

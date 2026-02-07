@@ -2,9 +2,11 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { LoginDialog } from "@/components/LoginDialog";
+import { authApi } from "@/api/auth";
+import type { LoginRequest, RegisterRequest, UserDTO } from "@/api/types";
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   avatar: string;
@@ -16,8 +18,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (data: LoginRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   checkAuth: (callback: () => void) => void;
   openLoginModal: () => void;
@@ -25,76 +27,86 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function mapUser(dto: UserDTO): User {
+  return {
+    id: dto.id,
+    name: dto.displayName || dto.username,
+    email: dto.email,
+    avatar: dto.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+    level: 1,
+    isPro: false,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null;
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser) as User;
+    } catch {
+      localStorage.removeItem("user");
+      return null;
+    }
+  });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const accessToken = localStorage.getItem("accessToken");
+    const storedUser = localStorage.getItem("user");
+    return Boolean(accessToken && !storedUser);
+  });
   const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
 
-  // Load user from local storage on mount
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const accessToken = localStorage.getItem("accessToken");
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    if (!accessToken || storedUser) return;
+
+    authApi
+      .me()
+      .then((me) => {
+        const mapped = mapUser(me);
+        setUser(mapped);
+        localStorage.setItem("user", JSON.stringify(mapped));
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (data: any) => {
-    // Mock login API call
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const mockUser: User = {
-          id: "1",
-          name: "GuoGuo",
-          email: "guoguo@example.com",
-          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-          level: 5,
-          isPro: true,
-        };
-        setUser(mockUser);
-        localStorage.setItem("user", JSON.stringify(mockUser));
-        setIsLoginModalOpen(false);
-        
-        // Execute pending callback if any
-        if (pendingCallback) {
-          pendingCallback();
-          setPendingCallback(null);
-        }
-        
-        resolve();
-      }, 1000);
-    });
+  const login = async (data: LoginRequest) => {
+    const res = await authApi.login(data);
+    localStorage.setItem("accessToken", res.accessToken);
+    localStorage.setItem("refreshToken", res.refreshToken);
+    const mapped = mapUser(res.user);
+    setUser(mapped);
+    localStorage.setItem("user", JSON.stringify(mapped));
+    setIsLoginModalOpen(false);
+    if (pendingCallback) {
+      pendingCallback();
+      setPendingCallback(null);
+    }
   };
 
-  const register = async (data: any) => {
-    // Mock register API call
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const mockUser: User = {
-          id: "2",
-          name: "New User",
-          email: data.email,
-          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=NewUser",
-          level: 1,
-          isPro: false,
-        };
-        setUser(mockUser);
-        localStorage.setItem("user", JSON.stringify(mockUser));
-        setIsLoginModalOpen(false);
-        
-        if (pendingCallback) {
-          pendingCallback();
-          setPendingCallback(null);
-        }
-
-        resolve();
-      }, 1000);
-    });
+  const register = async (data: RegisterRequest) => {
+    const res = await authApi.register(data);
+    localStorage.setItem("accessToken", res.accessToken);
+    localStorage.setItem("refreshToken", res.refreshToken);
+    const mapped = mapUser(res.user);
+    setUser(mapped);
+    localStorage.setItem("user", JSON.stringify(mapped));
+    setIsLoginModalOpen(false);
+    if (pendingCallback) {
+      pendingCallback();
+      setPendingCallback(null);
+    }
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
   };
 

@@ -19,10 +19,10 @@ export default function PublishPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const { checkAuth } = useAuth();
+  const [publishOpen, setPublishOpen] = useState(false);
 
   const handlePublish = () => {
     checkAuth(() => {
-      // Mock publish logic
       console.log("Publishing...");
     });
   };
@@ -48,15 +48,18 @@ export default function PublishPage() {
             <Eye className="w-4 h-4" /> 预览
           </Button>
           
-          <Popover>
+          <Popover open={publishOpen} onOpenChange={setPublishOpen}>
             <PopoverTrigger asChild>
-               <Button variant="default" size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700" onClick={(e) => {
-                 // Prevent default popover trigger if not logged in
-                 // Note: PopoverTrigger with onClick might be tricky, usually checkAuth should wrap the action
-                 // But for simplicity, we let the popover open but the "Confirm Publish" inside requires auth, 
-                 // OR we can't easily prevent popover opening with checkAuth unless we control open state manually.
-                 // Let's protect the "Confirm Publish" button inside.
-               }}>
+               <Button
+                 variant="default"
+                 size="sm"
+                 type="button"
+                 className="gap-2 bg-blue-600 hover:bg-blue-700"
+                 onClick={(e) => {
+                   e.preventDefault();
+                   checkAuth(() => setPublishOpen(true));
+                 }}
+               >
                  <Send className="w-4 h-4" /> 发布
                </Button>
             </PopoverTrigger>
@@ -78,7 +81,15 @@ export default function PublishPage() {
                      <Label htmlFor="original">原创声明</Label>
                      <Checkbox id="original" defaultChecked />
                   </div>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handlePublish}>确认发布</Button>
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    onClick={() => {
+                      handlePublish();
+                      setPublishOpen(false);
+                    }}
+                  >
+                    确认发布
+                  </Button>
                </div>
             </PopoverContent>
           </Popover>
