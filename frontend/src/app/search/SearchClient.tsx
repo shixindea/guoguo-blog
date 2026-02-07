@@ -2,19 +2,16 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Search, Filter, Calendar, ChevronDown, User, Hash, FileText } from "lucide-react";
+import { Search, Filter, ChevronDown, User, Hash, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ArticleList } from "@/components/ArticleList";
 import Link from "next/link";
+import { tagApi } from "@/api/tags";
+import type { TagDTO } from "@/api/types";
 
 const USERS = [
   { id: 1, name: "张晓明", bio: "资深前端架构师", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", followers: 1200 },
   { id: 2, name: "李思远", bio: "全栈开发者，Rust 爱好者", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack", followers: 850 },
-];
-
-const TAGS = [
-  { id: 1, name: "React", count: 1250 },
-  { id: 3, name: "Next.js", count: 850 },
 ];
 
 const TABS = [
@@ -30,9 +27,22 @@ export default function SearchClient() {
   const initialQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState("all");
+  const [tags, setTags] = useState<TagDTO[]>([]);
 
   useEffect(() => {
     setQuery(initialQuery);
+  }, [initialQuery]);
+
+  useEffect(() => {
+    const q = initialQuery.trim();
+    if (!q) {
+      setTags([]);
+      return;
+    }
+    tagApi.list().then((list) => {
+      const filtered = list.filter((t) => t.name.toLowerCase().includes(q.toLowerCase()));
+      setTags(filtered.slice(0, 12));
+    });
   }, [initialQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -129,10 +139,14 @@ export default function SearchClient() {
                   </h3>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  {TAGS.map((tag) => (
-                    <Link key={tag.id} href={`/tag/${tag.id}`} className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg flex items-center gap-2 hover:border-blue-500 transition-colors">
+                  {tags.map((tag) => (
+                    <Link
+                      key={tag.id}
+                      href={`/tag/${tag.id}`}
+                      className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg flex items-center gap-2 hover:border-blue-500 transition-colors"
+                    >
                       <span className="font-medium">{tag.name}</span>
-                      <span className="text-xs text-slate-400">{tag.count} 文章</span>
+                      <span className="text-xs text-slate-400">{tag.articleCount || 0} 文章</span>
                     </Link>
                   ))}
                 </div>
@@ -146,7 +160,7 @@ export default function SearchClient() {
                     <FileText className="w-4 h-4" /> 相关文章
                   </h3>
                 )}
-                <ArticleList showFilter={false} />
+                <ArticleList showFilter={false} query={{ keyword: query, sortBy: "publishedAt", order: "desc" }} />
               </div>
             )}
           </div>
@@ -182,4 +196,3 @@ export default function SearchClient() {
     </main>
   );
 }
-

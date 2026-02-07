@@ -37,12 +37,16 @@ export function GlobalApiTooltip() {
           <TooltipTrigger asChild>
             <button type="button" className="h-2 w-2 opacity-0 pointer-events-none" aria-hidden="true" />
           </TooltipTrigger>
-          <TooltipContent side="left" align="start">
-            {message}
+          <TooltipContent
+            side="left"
+            align="start"
+            className="bg-red-600 text-white text-sm px-4 py-3 rounded-xl shadow-2xl border border-red-300 max-w-[360px]"
+          >
+            <div className="font-semibold leading-snug">请求失败</div>
+            <div className="mt-1 text-white/90 leading-snug break-words">{message}</div>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>
   );
 }
-

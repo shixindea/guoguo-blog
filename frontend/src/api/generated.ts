@@ -4,6 +4,31 @@
  */
 
 export interface paths {
+    "/api/articles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取文章详情 */
+        get: operations["detail_2"];
+        /**
+         * 更新文章
+         * @description 更新文章内容与状态，返回文章详情
+         */
+        put: operations["update"];
+        post?: never;
+        /**
+         * 删除文章
+         * @description 软删除文章
+         */
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/register": {
         parameters: {
             query?: never;
@@ -44,6 +69,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取文章列表 */
+        get: operations["list_2"];
+        put?: never;
+        /**
+         * 创建文章
+         * @description 创建文章（草稿/发布），返回文章详情
+         */
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/{id}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 记录阅读 */
+        post: operations["view"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/{id}/like": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 点赞/取消点赞 */
+        post: operations["like"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/{id}/collect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 收藏/取消收藏 */
+        post: operations["collect"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/user/me": {
         parameters: {
             query?: never;
@@ -61,10 +158,401 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取标签列表 */
+        get: operations["list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取标签详情 */
+        get: operations["detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags/{id}/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取标签下文章 */
+        get: operations["articles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags/popular": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 热门标签 */
+        get: operations["popular"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取分类列表 */
+        get: operations["list_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取分类详情 */
+        get: operations["detail_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categories/{id}/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取分类下文章 */
+        get: operations["articles_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/{id}/related": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 相关文章 */
+        get: operations["related"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/trending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 热门文章 */
+        get: operations["trending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 搜索文章 */
+        get: operations["search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 获取草稿列表
+         * @description 返回当前用户草稿分页列表
+         */
+        get: operations["drafts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description 文章创建/更新请求 */
+        ArticleRequest: {
+            /** @description 文章标题 */
+            title: string;
+            /** @description 文章slug（URL友好标识），不传则自动生成 */
+            slug?: string;
+            /** @description 封面图URL */
+            coverImage?: string;
+            /** @description 文章摘要，不传则自动从正文提取 */
+            summary?: string;
+            /** @description 文章内容（Markdown） */
+            content: string;
+            /** @description 文章状态：DRAFT, PUBLISHED, PRIVATE */
+            status?: string;
+            /** @description 可见性：PUBLIC, PRIVATE, PASSWORD, PAID */
+            visibility?: string;
+            /** @description 访问密码（visibility=PASSWORD） */
+            password?: string;
+            /** @description 价格（visibility=PAID） */
+            price?: number;
+            /**
+             * Format: int64
+             * @description 分类ID
+             */
+            categoryId?: number;
+            /** @description 标签ID列表 */
+            tagIds?: number[];
+            /**
+             * Format: date-time
+             * @description 定时发布时间
+             */
+            scheduledAt?: string;
+        };
+        /** @description 统一响应包装 */
+        ApiResponseArticleResponse: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            data?: components["schemas"]["ArticleResponse"];
+        };
+        /** @description 文章详情响应 */
+        ArticleResponse: {
+            /**
+             * Format: int64
+             * @description 文章ID
+             */
+            id?: number;
+            /** @description 标题 */
+            title?: string;
+            /** @description slug */
+            slug?: string;
+            /** @description 封面图 */
+            coverImage?: string;
+            /** @description 摘要 */
+            summary?: string;
+            /** @description 正文（Markdown） */
+            content?: string;
+            /** @description HTML内容 */
+            htmlContent?: string;
+            /** @description 状态 */
+            status?: string;
+            /** @description 可见性 */
+            visibility?: string;
+            category?: components["schemas"]["CategoryDTO"];
+            /** @description 标签 */
+            tags?: components["schemas"]["TagDTO"][];
+            author?: components["schemas"]["UserDTO"];
+            /**
+             * Format: int64
+             * @description 阅读数
+             */
+            viewCount?: number;
+            /**
+             * Format: int64
+             * @description 点赞数
+             */
+            likeCount?: number;
+            /**
+             * Format: int64
+             * @description 收藏数
+             */
+            collectCount?: number;
+            /**
+             * Format: int64
+             * @description 评论数
+             */
+            commentCount?: number;
+            /**
+             * Format: date-time
+             * @description 发布时间
+             */
+            publishedAt?: string;
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt?: string;
+            /**
+             * Format: date-time
+             * @description 更新时间
+             */
+            updatedAt?: string;
+            /** @description 当前用户是否点赞 */
+            liked?: boolean;
+            /** @description 当前用户是否收藏 */
+            collected?: boolean;
+        };
+        /** @description 分类信息 */
+        CategoryDTO: {
+            /**
+             * Format: int64
+             * @description 分类ID
+             */
+            id?: number;
+            /** @description 分类名称 */
+            name?: string;
+            /** @description 分类slug */
+            slug?: string;
+            /** @description 分类描述 */
+            description?: string;
+            /** @description 分类图标 */
+            icon?: string;
+            /**
+             * Format: int32
+             * @description 排序
+             */
+            sortOrder?: number;
+            /**
+             * Format: int64
+             * @description 父分类ID
+             */
+            parentId?: number;
+            /**
+             * Format: int32
+             * @description 文章数
+             */
+            articleCount?: number;
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt?: string;
+        };
+        /** @description 标签信息 */
+        TagDTO: {
+            /**
+             * Format: int64
+             * @description 标签ID
+             */
+            id?: number;
+            /** @description 标签名称 */
+            name?: string;
+            /** @description 标签slug */
+            slug?: string;
+            /** @description 标签描述 */
+            description?: string;
+            /** @description 标签图标 */
+            icon?: string;
+            /** @description 标签颜色 */
+            color?: string;
+            /**
+             * Format: int32
+             * @description 文章数
+             */
+            articleCount?: number;
+            /** @description 是否推荐 */
+            recommended?: boolean;
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt?: string;
+        };
+        /** @description 用户信息 */
+        UserDTO: {
+            /**
+             * Format: int64
+             * @description 用户ID
+             */
+            id?: number;
+            /** @description 用户名 */
+            username?: string;
+            /** @description 邮箱 */
+            email?: string;
+            /** @description 显示名称 */
+            displayName?: string;
+            /** @description 头像URL */
+            avatarUrl?: string;
+            /** @description 个人简介 */
+            bio?: string;
+            /** @description 角色列表 */
+            roles?: string[];
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt?: string;
+        };
         /** @description 注册请求 */
         RegisterRequest: {
             /**
@@ -121,31 +609,6 @@ export interface components {
              */
             expiresIn?: number;
         };
-        /** @description 用户信息 */
-        UserDTO: {
-            /**
-             * Format: int64
-             * @description 用户ID
-             */
-            id?: number;
-            /** @description 用户名 */
-            username?: string;
-            /** @description 邮箱 */
-            email?: string;
-            /** @description 显示名称 */
-            displayName?: string;
-            /** @description 头像URL */
-            avatarUrl?: string;
-            /** @description 个人简介 */
-            bio?: string;
-            /** @description 角色列表 */
-            roles?: string[];
-            /**
-             * Format: date-time
-             * @description 创建时间
-             */
-            createdAt?: string;
-        };
         /** @description 登录请求 */
         LoginRequest: {
             /**
@@ -159,6 +622,37 @@ export interface components {
              */
             password: string;
         };
+        /** @description 阅读记录请求 */
+        ArticleViewRequest: {
+            /**
+             * @description 阅读进度（0-100）
+             * @example 65.5
+             */
+            progress?: number;
+            /**
+             * Format: int32
+             * @description 最后阅读位置（字符位置）
+             * @example 1024
+             */
+            lastPosition?: number;
+            /**
+             * Format: int32
+             * @description 阅读时长（秒）
+             * @example 120
+             */
+            readDuration?: number;
+        };
+        /** @description 统一响应包装 */
+        ApiResponseVoid: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            /** @description 返回数据 */
+            data?: Record<string, never>;
+        };
         /** @description 统一响应包装 */
         ApiResponseUserDTO: {
             /** @description 是否成功 */
@@ -169,6 +663,138 @@ export interface components {
             message?: string;
             data?: components["schemas"]["UserDTO"];
         };
+        /** @description 统一响应包装 */
+        ApiResponseListTagDTO: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            /** @description 返回数据 */
+            data?: components["schemas"]["TagDTO"][];
+        };
+        /** @description 统一响应包装 */
+        ApiResponseTagDTO: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            data?: components["schemas"]["TagDTO"];
+        };
+        /** @description 统一响应包装 */
+        ApiResponsePageResponseArticleListItem: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            data?: components["schemas"]["PageResponseArticleListItem"];
+        };
+        /** @description 文章列表项 */
+        ArticleListItem: {
+            /**
+             * Format: int64
+             * @description 文章ID
+             */
+            id?: number;
+            /** @description 标题 */
+            title?: string;
+            /** @description slug */
+            slug?: string;
+            /** @description 封面图 */
+            coverImage?: string;
+            /** @description 摘要 */
+            summary?: string;
+            /** @description 状态 */
+            status?: string;
+            /** @description 可见性 */
+            visibility?: string;
+            author?: components["schemas"]["UserDTO"];
+            category?: components["schemas"]["CategoryDTO"];
+            /** @description 标签 */
+            tags?: components["schemas"]["TagDTO"][];
+            /**
+             * Format: int64
+             * @description 阅读数
+             */
+            viewCount?: number;
+            /**
+             * Format: int64
+             * @description 点赞数
+             */
+            likeCount?: number;
+            /**
+             * Format: int64
+             * @description 评论数
+             */
+            commentCount?: number;
+            /**
+             * Format: date-time
+             * @description 发布时间
+             */
+            publishedAt?: string;
+            /**
+             * Format: date-time
+             * @description 创建时间
+             */
+            createdAt?: string;
+        };
+        /** @description 分页响应 */
+        PageResponseArticleListItem: {
+            /**
+             * Format: int32
+             * @description 当前页码（从1开始）
+             */
+            page?: number;
+            /**
+             * Format: int32
+             * @description 每页大小
+             */
+            size?: number;
+            /**
+             * Format: int64
+             * @description 总条数
+             */
+            total?: number;
+            /** @description 数据列表 */
+            list?: components["schemas"]["ArticleListItem"][];
+        };
+        /** @description 统一响应包装 */
+        ApiResponseListCategoryDTO: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            /** @description 返回数据 */
+            data?: components["schemas"]["CategoryDTO"][];
+        };
+        /** @description 统一响应包装 */
+        ApiResponseCategoryDTO: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            data?: components["schemas"]["CategoryDTO"];
+        };
+        /** @description 统一响应包装 */
+        ApiResponseListArticleListItem: {
+            /** @description 是否成功 */
+            success?: boolean;
+            /** @description 业务码 */
+            code?: string;
+            /** @description 提示信息 */
+            message?: string;
+            /** @description 返回数据 */
+            data?: components["schemas"]["ArticleListItem"][];
+        };
     };
     responses: never;
     parameters: never;
@@ -178,6 +804,76 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    detail_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseArticleResponse"];
+                };
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArticleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseArticleResponse"];
+                };
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
     register: {
         parameters: {
             query?: never;
@@ -226,6 +922,130 @@ export interface operations {
             };
         };
     };
+    list_2: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+                sortBy?: string;
+                order?: string;
+                status?: string;
+                categoryId?: number;
+                tagId?: number;
+                userId?: number;
+                keyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponsePageResponseArticleListItem"];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArticleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseArticleResponse"];
+                };
+            };
+        };
+    };
+    view: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ArticleViewRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    like: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseArticleResponse"];
+                };
+            };
+        };
+    };
+    collect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseArticleResponse"];
+                };
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -242,6 +1062,253 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponseUserDTO"];
+                };
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseListTagDTO"];
+                };
+            };
+        };
+    };
+    detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseTagDTO"];
+                };
+            };
+        };
+    };
+    articles: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponsePageResponseArticleListItem"];
+                };
+            };
+        };
+    };
+    popular: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseListTagDTO"];
+                };
+            };
+        };
+    };
+    list_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseListCategoryDTO"];
+                };
+            };
+        };
+    };
+    detail_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseCategoryDTO"];
+                };
+            };
+        };
+    };
+    articles_1: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponsePageResponseArticleListItem"];
+                };
+            };
+        };
+    };
+    related: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseListArticleListItem"];
+                };
+            };
+        };
+    };
+    trending: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseListArticleListItem"];
+                };
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query: {
+                keyword: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponsePageResponseArticleListItem"];
+                };
+            };
+        };
+    };
+    drafts: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponsePageResponseArticleListItem"];
                 };
             };
         };

@@ -1,27 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Plus } from "lucide-react";
+import { articleApi } from "@/api/articles";
+import type { ArticleListItem } from "@/api/types";
 
 export function RecommendSidebar() {
+  const [trending, setTrending] = useState<ArticleListItem[]>([]);
+
+  useEffect(() => {
+    articleApi.trending({ limit: 4 }).then(setTrending);
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* For You */}
       <div className="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-800">
         <h3 className="font-bold text-slate-900 dark:text-white mb-4 border-l-4 border-blue-600 pl-3">为你推荐</h3>
         <ul className="space-y-4">
-          {[
-            { title: "Next.js 14 App Router 迁移指南", icon: "/next.svg" },
-            { title: "Rust 入门：系统编程新选择", icon: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Rust_programming_language_black_logo.svg" },
-            { title: "Tailwind CSS 实用技巧集锦", icon: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg" },
-            { title: "PostgreSQL 性能调优实战", icon: "https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg" },
-          ].map((item, i) => (
-            <li key={i} className="group cursor-pointer flex gap-3 items-start">
-              <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-2 shrink-0 border border-slate-100 dark:border-slate-700">
-                  <img src={item.icon} alt="icon" className="w-full h-full object-contain" />
-              </div>
-              <div className="flex-1 py-0.5">
+          {trending.map((item) => (
+            <li key={item.id} className="group flex gap-3 items-start">
+              <Link href={`/article/${item.id}`} className="flex gap-3 items-start w-full">
+                <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-2 shrink-0 border border-slate-100 dark:border-slate-700 overflow-hidden">
+                  <img
+                    src={item.coverImage || "https://api.dicebear.com/7.x/shapes/svg?seed=article"}
+                    alt="icon"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 py-0.5">
                   <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
                     {item.title}
                   </h4>
-              </div>
+                </div>
+              </Link>
             </li>
           ))}
         </ul>

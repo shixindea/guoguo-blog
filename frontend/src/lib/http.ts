@@ -1,5 +1,7 @@
 import axios from "axios";
 import { notify } from "@/lib/notify";
+import type { AxiosRequestConfig } from "axios";
+import type { ApiResponse } from "@/api/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
@@ -7,6 +9,17 @@ export const http = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
 });
+
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
+function isApiResponse(value: unknown): value is ApiResponse<unknown> {
+  if (!value || typeof value !== "object") return false;
+  return "success" in value && "code" in value;
+}
 
 http.interceptors.request.use((config) => {
   if (typeof window === "undefined") return config;
@@ -20,14 +33,15 @@ http.interceptors.request.use((config) => {
 
 http.interceptors.response.use(
   (res) => {
+    if (res.status !== 200) {
+      notify("请求失败");
+      return Promise.reject(new Error("请求失败"));
+    }
     const data = res.data;
-    if (data && typeof data === "object" && "success" in data && "code" in data) {
-      const success = Boolean((data as { success: unknown }).success);
-      const code = String((data as { code: unknown }).code ?? "");
-      const message = String((data as { message?: unknown }).message ?? "");
-      if (!success || code !== "OK") {
-        notify(message || "请求失败");
-        return Promise.reject(new Error(message || "请求失败"));
+    if (isApiResponse(data)) {
+      if (!data.success || data.code !== "OK") {
+        notify(data.message || "请求失败");
+        return Promise.reject(new Error(data.message || "请求失败"));
       }
     }
     return res;
@@ -37,7 +51,7 @@ http.interceptors.response.use(
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
-      notify("登录已过期，请重新登录");
+      unauthorizedHandler?.();
       return Promise.reject(error);
     }
 
@@ -53,3 +67,28 @@ http.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export async function apiRequest<T>(config: AxiosRequestConfig): Promise<T> {
+  const res = await http.request(config);
+  const data = res.data;
+  if (isApiResponse(data)) {
+    return data.data as T;
+  }
+  return data as T;
+}
+
+export function apiGet<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>({ ...(config || {}), url, method: "GET" });
+}
+
+export function apiPost<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>({ ...(config || {}), url, method: "POST", data: body });
+}
+
+export function apiPut<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>({ ...(config || {}), url, method: "PUT", data: body });
+}
+
+export function apiDelete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  return apiRequest<T>({ ...(config || {}), url, method: "DELETE" });
+}

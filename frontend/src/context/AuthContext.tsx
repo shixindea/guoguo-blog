@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { LoginDialog } from "@/components/LoginDialog";
 import { authApi } from "@/api/auth";
 import type { LoginRequest, RegisterRequest, UserDTO } from "@/api/types";
+import { setUnauthorizedHandler } from "@/lib/http";
 
 interface User {
   id: number;
@@ -39,31 +40,39 @@ function mapUser(dto: UserDTO): User {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === "undefined") return null;
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) return null;
-    try {
-      return JSON.parse(storedUser) as User;
-    } catch {
-      localStorage.removeItem("user");
-      return null;
-    }
-  });
+  const [user, setUser] = useState<User | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const accessToken = localStorage.getItem("accessToken");
-    const storedUser = localStorage.getItem("user");
-    return Boolean(accessToken && !storedUser);
-  });
+  const [isLoading, setIsLoading] = useState(true);
   const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null);
+      setPendingCallback(null);
+      setIsLoginModalOpen(true);
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const accessToken = localStorage.getItem("accessToken");
     const storedUser = localStorage.getItem("user");
-    if (!accessToken || storedUser) return;
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser) as User);
+      } catch {
+        localStorage.removeItem("user");
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+    if (!accessToken) {
+      setIsLoading(false);
+      return;
+    }
 
     authApi
       .me()
@@ -72,8 +81,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(mapped);
         localStorage.setItem("user", JSON.stringify(mapped));
       })
-      .finally(() => setIsLoading(false));
+      .catch(() => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        setUser(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
+
+  useEffect(() => {
+    if (!user || !pendingCallback) return;
+    pendingCallback();
+    setPendingCallback(null);
+  }, [user, pendingCallback]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (user) return;
+    if (!pendingCallback) return;
+    setIsLoginModalOpen(true);
+  }, [isLoading, user, pendingCallback]);
 
   const login = async (data: LoginRequest) => {
     const res = await authApi.login(data);
@@ -115,7 +145,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       callback();
     } else {
       setPendingCallback(() => callback);
-      setIsLoginModalOpen(true);
+      if (!isLoading) {
+        setIsLoginModalOpen(true);
+      }
     }
   };
 

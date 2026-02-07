@@ -2,23 +2,29 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, Eye, Send, Image as ImageIcon, Settings } from "lucide-react";
+import { ArrowLeft, Save, Eye, Send, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { articleApi } from "@/api/articles";
-import type { ArticleVisibility } from "@/api/types";
+import { categoryApi } from "@/api/categories";
+import { tagApi } from "@/api/tags";
+import type { ArticleVisibility, CategoryDTO, TagDTO } from "@/api/types";
 
 export default function PublishClient() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [summary, setSummary] = useState("");
   const [visibility, setVisibility] = useState<ArticleVisibility>("PUBLIC");
+  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [tagIds, setTagIds] = useState<number[]>([]);
+  const [categories, setCategories] = useState<CategoryDTO[]>([]);
+  const [popularTags, setPopularTags] = useState<TagDTO[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const { checkAuth } = useAuth();
   const [publishOpen, setPublishOpen] = useState(false);
   const router = useRouter();
@@ -28,6 +34,11 @@ export default function PublishClient() {
     return id ? Number(id) : null;
   }, [searchParams]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    categoryApi.list().then(setCategories);
+    tagApi.popular().then(setPopularTags);
+  }, []);
 
   useEffect(() => {
     if (!articleId) return;
@@ -40,6 +51,8 @@ export default function PublishClient() {
           setContent(a.content);
           setSummary(a.summary || "");
           setVisibility(a.visibility);
+          setCategoryId(a.category?.id);
+          setTagIds(a.tags.map((t) => t.id));
         })
         .finally(() => setLoading(false));
     });
@@ -53,6 +66,8 @@ export default function PublishClient() {
         summary: summary || undefined,
         status: "DRAFT" as const,
         visibility,
+        categoryId,
+        tagIds: tagIds.length ? tagIds : undefined,
       };
       setLoading(true);
       try {
@@ -72,6 +87,8 @@ export default function PublishClient() {
         summary: summary || undefined,
         status: "PUBLISHED" as const,
         visibility,
+        categoryId,
+        tagIds: tagIds.length ? tagIds : undefined,
       };
       setLoading(true);
       try {
@@ -181,19 +198,63 @@ export default function PublishClient() {
 
             <div className="space-y-3">
               <Label className="text-base font-semibold">分类专栏</Label>
-              <Input className="h-10" placeholder="选择或新建专栏" />
+              <select
+                className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-sm"
+                value={categoryId ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCategoryId(v ? Number(v) : undefined);
+                }}
+              >
+                <option value="">未分类</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-3">
               <Label className="text-base font-semibold">标签</Label>
-              <Input className="h-10" placeholder="添加标签 (回车确认)" />
+              <div className="flex gap-2">
+                <Input
+                  className="h-10"
+                  placeholder="添加标签 (回车确认)"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    const name = tagInput.trim();
+                    if (!name) return;
+                    const tag = popularTags.find((t) => t.name.toLowerCase() === name.toLowerCase());
+                    if (!tag) return;
+                    setTagIds((prev) => (prev.includes(tag.id) ? prev : [...prev, tag.id]));
+                    setTagInput("");
+                  }}
+                  list="popular-tags"
+                />
+                <datalist id="popular-tags">
+                  {popularTags.map((t) => (
+                    <option key={t.id} value={t.name} />
+                  ))}
+                </datalist>
+              </div>
               <div className="flex flex-wrap gap-2 pt-1">
-                <span className="px-3 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-full text-xs font-medium flex items-center gap-1 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
-                  React <span className="hover:text-red-500">×</span>
-                </span>
-                <span className="px-3 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-full text-xs font-medium flex items-center gap-1 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
-                  前端 <span className="hover:text-red-500">×</span>
-                </span>
+                {tagIds.map((id) => {
+                  const t = popularTags.find((x) => x.id === id);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className="px-3 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-full text-xs font-medium flex items-center gap-1 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                      onClick={() => setTagIds((prev) => prev.filter((x) => x !== id))}
+                    >
+                      {t?.name || `#${id}`} <span className="opacity-70">×</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -230,4 +291,3 @@ export default function PublishClient() {
     </div>
   );
 }
-

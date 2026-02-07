@@ -152,7 +152,7 @@ class ArticleControllerTest {
                 .content(objectMapper.writeValueAsString(payload)))
         .andExpect(status().isOk());
 
-    mockMvc.perform(get("/api/articles/drafts")).andExpect(status().isForbidden());
+    mockMvc.perform(get("/api/articles/drafts")).andExpect(status().isUnauthorized());
 
     mockMvc
         .perform(get("/api/articles/drafts").with(SecurityMockMvcRequestPostProcessors.user(principal)))

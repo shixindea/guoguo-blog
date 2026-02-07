@@ -1,6 +1,7 @@
 package com.guoguo.blog.backend.config;
 
 import com.guoguo.blog.backend.security.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,24 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .cors(Customizer.withDefaults())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(
+            ex ->
+                ex.authenticationEntryPoint(
+                        (request, response, authException) -> {
+                          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                          response.setContentType("application/json;charset=UTF-8");
+                          response
+                              .getWriter()
+                              .write("{\"success\":false,\"code\":\"UNAUTHORIZED\",\"message\":\"未登录\",\"data\":null}");
+                        })
+                    .accessDeniedHandler(
+                        (request, response, accessDeniedException) -> {
+                          response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                          response.setContentType("application/json;charset=UTF-8");
+                          response
+                              .getWriter()
+                              .write("{\"success\":false,\"code\":\"FORBIDDEN\",\"message\":\"无权限\",\"data\":null}");
+                        }))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(HttpMethod.GET, "/api/articles/drafts")

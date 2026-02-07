@@ -1,22 +1,11 @@
-import { http } from "@/lib/http";
 import type {
-  ApiResponse,
   ArticleListItem,
   ArticleRequest,
   ArticleResponse,
   ArticleViewRequest,
   PageResponse,
 } from "@/api/types";
-
-function unwrap<T>(res: ApiResponse<T>): T {
-  if (!res.success) {
-    throw new Error(res.message || "请求失败");
-  }
-  if (res.data === undefined) {
-    throw new Error("响应缺少 data 字段");
-  }
-  return res.data;
-}
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/http";
 
 export const articleApi = {
   async list(params?: {
@@ -30,63 +19,50 @@ export const articleApi = {
     userId?: number;
     keyword?: string;
   }): Promise<PageResponse<ArticleListItem>> {
-    const { data } = await http.get<ApiResponse<PageResponse<ArticleListItem>>>("/api/articles", { params });
-    return unwrap(data);
+    return apiGet<PageResponse<ArticleListItem>>("/api/articles", { params });
   },
 
   async detail(id: number): Promise<ArticleResponse> {
-    const { data } = await http.get<ApiResponse<ArticleResponse>>(`/api/articles/${id}`);
-    return unwrap(data);
+    return apiGet<ArticleResponse>(`/api/articles/${id}`);
   },
 
   async create(payload: ArticleRequest): Promise<ArticleResponse> {
-    const { data } = await http.post<ApiResponse<ArticleResponse>>("/api/articles", payload);
-    return unwrap(data);
+    return apiPost<ArticleResponse>("/api/articles", payload);
   },
 
   async update(id: number, payload: ArticleRequest): Promise<ArticleResponse> {
-    const { data } = await http.put<ApiResponse<ArticleResponse>>(`/api/articles/${id}`, payload);
-    return unwrap(data);
+    return apiPut<ArticleResponse>(`/api/articles/${id}`, payload);
   },
 
   async remove(id: number): Promise<void> {
-    const { data } = await http.delete<ApiResponse<void>>(`/api/articles/${id}`);
-    unwrap(data);
+    await apiDelete<void>(`/api/articles/${id}`);
   },
 
   async drafts(params?: { page?: number; size?: number }): Promise<PageResponse<ArticleListItem>> {
-    const { data } = await http.get<ApiResponse<PageResponse<ArticleListItem>>>("/api/articles/drafts", { params });
-    return unwrap(data);
+    return apiGet<PageResponse<ArticleListItem>>("/api/articles/drafts", { params });
   },
 
   async search(params: { keyword: string; page?: number; size?: number }): Promise<PageResponse<ArticleListItem>> {
-    const { data } = await http.get<ApiResponse<PageResponse<ArticleListItem>>>("/api/articles/search", { params });
-    return unwrap(data);
+    return apiGet<PageResponse<ArticleListItem>>("/api/articles/search", { params });
   },
 
   async trending(params?: { limit?: number }): Promise<ArticleListItem[]> {
-    const { data } = await http.get<ApiResponse<ArticleListItem[]>>("/api/articles/trending", { params });
-    return unwrap(data);
+    return apiGet<ArticleListItem[]>("/api/articles/trending", { params });
   },
 
   async related(id: number, params?: { limit?: number }): Promise<ArticleListItem[]> {
-    const { data } = await http.get<ApiResponse<ArticleListItem[]>>(`/api/articles/${id}/related`, { params });
-    return unwrap(data);
+    return apiGet<ArticleListItem[]>(`/api/articles/${id}/related`, { params });
   },
 
   async like(id: number): Promise<ArticleResponse> {
-    const { data } = await http.post<ApiResponse<ArticleResponse>>(`/api/articles/${id}/like`);
-    return unwrap(data);
+    return apiPost<ArticleResponse>(`/api/articles/${id}/like`);
   },
 
   async collect(id: number): Promise<ArticleResponse> {
-    const { data } = await http.post<ApiResponse<ArticleResponse>>(`/api/articles/${id}/collect`);
-    return unwrap(data);
+    return apiPost<ArticleResponse>(`/api/articles/${id}/collect`);
   },
 
   async view(id: number, payload?: ArticleViewRequest): Promise<void> {
-    const { data } = await http.post<ApiResponse<void>>(`/api/articles/${id}/view`, payload || {});
-    unwrap(data);
+    await apiPost<void>(`/api/articles/${id}/view`, payload || {});
   },
 };
-
