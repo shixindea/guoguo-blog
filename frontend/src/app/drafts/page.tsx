@@ -9,15 +9,41 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useEffect, useMemo, useState } from "react";
+import { articleApi } from "@/api/articles";
+import type { ArticleListItem, PageResponse } from "@/api/types";
+import { useAuth } from "@/context/AuthContext";
 
-const DRAFTS = [
-  { id: 1, title: "React 源码深度解析（二）：Fiber 架构", lastEdited: "10分钟前", wordCount: 3240, progress: 65 },
-  { id: 2, title: "微前端实战：qiankun 与 module federation", lastEdited: "2小时前", wordCount: 1580, progress: 30 },
-  { id: 3, title: "未命名草稿 2024-03-25", lastEdited: "昨天 18:20", wordCount: 120, progress: 5 },
-  { id: 4, title: "Rust 学习笔记：所有权与借用", lastEdited: "3天前", wordCount: 5600, progress: 90 },
-];
+function formatRelative(iso?: string) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${Math.max(minutes, 1)}分钟前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}小时前`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}天前`;
+  return date.toISOString().slice(0, 16).replace("T", " ");
+}
 
 export default function DraftsPage() {
+  const { checkAuth } = useAuth();
+  const [page, setPage] = useState<PageResponse<ArticleListItem> | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    checkAuth(() => {
+      setLoading(true);
+      articleApi
+        .drafts({ page: 1, size: 50 })
+        .then(setPage)
+        .finally(() => setLoading(false));
+    });
+  }, [checkAuth]);
+
+  const drafts = useMemo(() => page?.list || [], [page]);
+
   return (
     <main className="container mx-auto px-4 pt-24 pb-12 min-h-screen">
       <div className="space-y-8">
@@ -27,7 +53,13 @@ export default function DraftsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {DRAFTS.map((draft) => (
+        {loading && drafts.length === 0 && (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 text-slate-500">
+            加载中...
+          </div>
+        )}
+
+        {drafts.map((draft) => (
           <div key={draft.id} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all flex flex-col h-full">
              <div className="flex items-start justify-between mb-4">
                 <div className="p-3 bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400 rounded-xl">
@@ -50,7 +82,7 @@ export default function DraftsPage() {
                 </DropdownMenu>
              </div>
 
-             <Link href="/publish" className="flex-1 block group-hover:text-blue-600 transition-colors">
+             <Link href={`/publish?id=${draft.id}`} className="flex-1 block group-hover:text-blue-600 transition-colors">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-2">
                    {draft.title}
                 </h3>
@@ -58,16 +90,16 @@ export default function DraftsPage() {
 
              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
                 <div className="flex items-center gap-1">
-                   <Clock className="w-3 h-3" /> {draft.lastEdited}
+                   <Clock className="w-3 h-3" /> {formatRelative(draft.createdAt)}
                 </div>
-                <span>{draft.wordCount} 字</span>
+                <span>{(draft.summary || "").length} 字</span>
              </div>
              
              {/* Progress Bar */}
              <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full mt-3 overflow-hidden">
                 <div 
                   className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                  style={{ width: `${draft.progress}%` }}
+                  style={{ width: `${Math.min(100, Math.max(5, Math.floor(((draft.summary || "").length / 200) * 100)))}%` }}
                 ></div>
              </div>
           </div>

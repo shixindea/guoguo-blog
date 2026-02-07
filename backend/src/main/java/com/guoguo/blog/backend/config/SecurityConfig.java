@@ -4,6 +4,7 @@ import com.guoguo.blog.backend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -34,12 +35,21 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(
+                auth.requestMatchers(HttpMethod.GET, "/api/articles/drafts")
+                    .authenticated()
+                    .requestMatchers(
                         "/api/auth/**",
+                        "/api/categories/**",
+                        "/api/tags/**",
+                        "/api/articles/trending",
+                        "/api/articles/search",
+                        "/api/articles/*/view",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/h2-console/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/articles/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -72,4 +82,3 @@ public class SecurityConfig {
     return new CorsFilter(source);
   }
 }
-
