@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: guoguo-blog-backend
+  datasource:
+    url: jdbc:h2:mem:guoguo_blog;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:ZG9uJ3QtdXNlLXRoaXMtaW4tcHJvZC0zMi1ieXRlLXNlY3JldA==}
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 604800000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    org.springframework.security: INFO
+
