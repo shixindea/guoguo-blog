@@ -83,6 +83,29 @@ export interface CheckinResultDTO {
   status: CheckinStatusDTO;
 }
 
+export interface DashboardOverviewDTO {
+  totalViews: number;
+  totalLikes: number;
+  followerCount: number;
+  collectionCount: number;
+  historyCount: number;
+  publishedCount: number;
+  draftCount: number;
+}
+
+export interface CollectionItemDTO {
+  id: number;
+  collectedAt?: string;
+  article: ArticleListItem;
+}
+
+export interface HistoryItemDTO {
+  id: number;
+  progress?: number;
+  lastReadAt?: string;
+  article: ArticleListItem;
+}
+
 export interface TagDTO {
   id: number;
   name: string;

@@ -58,6 +58,8 @@ public class SecurityConfig {
                     .authenticated()
                     .requestMatchers("/api/checkins/**")
                     .authenticated()
+                    .requestMatchers("/api/dashboard/**", "/api/collections/**", "/api/histories/**")
+                    .authenticated()
                     .requestMatchers(
                         "/api/auth/**",
                         "/api/categories/**",

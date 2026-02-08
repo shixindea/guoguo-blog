@@ -1,7 +1,12 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Eye, ThumbsUp, Users, BookMarked, TrendingUp } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { dashboardApi } from "@/api/dashboard";
+import type { DashboardOverviewDTO } from "@/api/types";
 
 // Mock Data
 const CHART_DATA = [
@@ -29,17 +34,55 @@ const RECENT_ACTIVITIES = [
 ];
 
 export default function DashboardPage() {
+  const { user, isAuthenticated, isLoading: authLoading, openLoginModal } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [overview, setOverview] = useState<DashboardOverviewDTO | null>(null);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) return;
+    setLoading(true);
+    dashboardApi
+      .overview()
+      .then(setOverview)
+      .finally(() => setLoading(false));
+  }, [authLoading, isAuthenticated]);
+
+  const stats = useMemo(() => {
+    if (!overview) return STATS;
+    return [
+      { label: "文章总阅读", value: overview.totalViews.toLocaleString(), change: "-", icon: Eye, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-900/20" },
+      { label: "获得点赞", value: overview.totalLikes.toLocaleString(), change: "-", icon: ThumbsUp, color: "text-red-500", bg: "bg-red-50 dark:bg-red-900/20" },
+      { label: "粉丝总数", value: overview.followerCount.toLocaleString(), change: "-", icon: Users, color: "text-green-500", bg: "bg-green-50 dark:bg-green-900/20" },
+      { label: "收藏文章", value: overview.collectionCount.toLocaleString(), change: "-", icon: BookMarked, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/20" },
+    ];
+  }, [overview]);
+
   return (
     <div className="space-y-8">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">欢迎回来，张晓明 👋</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+          欢迎回来，{user?.name || "朋友"}
+        </h1>
         <p className="text-slate-500">这是你本周的数据概览</p>
       </div>
 
+      {!authLoading && !isAuthenticated && (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div>
+            <div className="font-medium text-slate-900 dark:text-white">你还未登录</div>
+            <div className="text-sm text-slate-500">登录后可查看控制台数据概览</div>
+          </div>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={openLoginModal}>
+            登录
+          </Button>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {STATS.map((stat) => {
+        {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div key={stat.label} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -58,6 +101,8 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      {loading && <div className="text-slate-500">加载中...</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Activity Chart Placeholder */}

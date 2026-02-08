@@ -26,4 +26,12 @@ public interface ArticleRepository extends JpaRepository<Article, Long>, JpaSpec
           + "where at.tag.id in :tagIds and a.id <> :articleId and a.status = 'PUBLISHED' and a.visibility = 'PUBLIC' "
           + "order by a.publishedAt desc")
   List<Article> findRelatedPublic(@Param("articleId") Long articleId, @Param("tagIds") List<Long> tagIds, Pageable pageable);
+
+  long countByAuthor_IdAndStatus(Long authorId, ArticleStatus status);
+
+  @Query("select coalesce(sum(a.viewCount), 0) from Article a where a.author.id = :authorId and a.status = 'PUBLISHED'")
+  long sumViewsByAuthor(@Param("authorId") Long authorId);
+
+  @Query("select coalesce(sum(a.likeCount), 0) from Article a where a.author.id = :authorId and a.status = 'PUBLISHED'")
+  long sumLikesByAuthor(@Param("authorId") Long authorId);
 }

@@ -26,8 +26,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [activeTab, setActiveTab] = useState("login");
   const [error, setError] = useState<string | null>(null);
 
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+  const [loginEmail, setLoginEmail] = useState("guoguo");
+  const [loginPassword, setLoginPassword] = useState("Yuan123456");
 
   const [regEmail, setRegEmail] = useState("");
   const [regUsername, setRegUsername] = useState("");

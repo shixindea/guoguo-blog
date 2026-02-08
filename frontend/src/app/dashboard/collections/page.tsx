@@ -1,20 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { Folder, MoreVertical, Plus, Lock, Globe } from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-
-// Mock Data
-const COLLECTIONS = [
-  { id: 1, name: "React 进阶学习", count: 12, private: false, updated: "2天前", cover: "bg-blue-500" },
-  { id: 2, name: "后端架构设计", count: 8, private: true, updated: "1周前", cover: "bg-purple-500" },
-  { id: 3, name: "待阅读清单", count: 24, private: true, updated: "5小时前", cover: "bg-orange-500" },
-  { id: 4, name: "UI/UX 灵感库", count: 15, private: false, updated: "3天前", cover: "bg-pink-500" },
-];
+import { BookMarked, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { collectionApi } from "@/api/collections";
+import type { CollectionItemDTO, PageResponse } from "@/api/types";
 
 export default function CollectionsPage() {
-  const [activeTab, setActiveTab] = useState<"all" | "public" | "private">("all");
+  const { isAuthenticated, isLoading: authLoading, openLoginModal, checkAuth } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState<PageResponse<CollectionItemDTO> | null>(null);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) return;
+    setLoading(true);
+    collectionApi
+      .list({ page: 1, size: 50 })
+      .then(setPage)
+      .finally(() => setLoading(false));
+  }, [authLoading, isAuthenticated]);
+
+  const items = page?.list || [];
 
   return (
     <div className="space-y-8">
@@ -23,101 +32,81 @@ export default function CollectionsPage() {
            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">我的收藏</h1>
            <p className="text-slate-500">管理你的知识库和阅读清单</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all">
-           <Plus className="w-5 h-5" /> 新建收藏夹
-        </button>
+        <Button
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => {
+            if (!isAuthenticated) openLoginModal();
+          }}
+        >
+          管理收藏
+        </Button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-800">
-          <button
-            onClick={() => setActiveTab("all")}
-            className={cn(
-              "px-6 py-3 text-sm font-medium border-b-2 transition-all",
-              activeTab === "all"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400"
-            )}
-          >
-            全部
-          </button>
-          <button
-            onClick={() => setActiveTab("public")}
-            className={cn(
-              "px-6 py-3 text-sm font-medium border-b-2 transition-all",
-              activeTab === "public"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400"
-            )}
-          >
-            公开
-          </button>
-          <button
-            onClick={() => setActiveTab("private")}
-            className={cn(
-              "px-6 py-3 text-sm font-medium border-b-2 transition-all",
-              activeTab === "private"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400"
-            )}
-          >
-            私密
-          </button>
-      </div>
+      {!authLoading && !isAuthenticated && (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div>
+            <div className="font-medium text-slate-900 dark:text-white">你还未登录</div>
+            <div className="text-sm text-slate-500">登录后才能查看收藏内容</div>
+          </div>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={openLoginModal}>
+            登录
+          </Button>
+        </div>
+      )}
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         {COLLECTIONS.filter(c => activeTab === "all" || (activeTab === "private" ? c.private : !c.private)).map(collection => (
-            <div key={collection.id} className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden">
-               {/* Cover */}
-               <div className={`h-24 ${collection.cover} relative`}>
-                  <div className="absolute top-3 right-3">
-                     {collection.private ? (
-                        <div className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white/80">
-                           <Lock className="w-4 h-4" />
-                        </div>
-                     ) : (
-                        <div className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white/80">
-                           <Globe className="w-4 h-4" />
-                        </div>
-                     )}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
+            <BookMarked className="w-5 h-5 text-blue-600" />
+            收藏文章
+          </div>
+          <div className="text-sm text-slate-500">{page?.total ?? 0} 条</div>
+        </div>
+
+        <div className="divide-y divide-slate-200 dark:divide-slate-800">
+          {loading && <div className="p-6 text-slate-500">加载中...</div>}
+          {!loading && items.length === 0 && <div className="p-6 text-slate-500">暂无收藏</div>}
+          {items.map((item) => (
+            <div key={item.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+              <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+                {item.article.coverImage ? (
+                  <img src={item.article.coverImage} alt={item.article.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                    <BookMarked className="w-5 h-5" />
                   </div>
-               </div>
-               
-               {/* Content */}
-               <div className="p-5">
-                  <div className="flex items-start justify-between mb-2">
-                     <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-white dark:border-slate-800 shadow-sm -mt-10 flex items-center justify-center text-slate-400">
-                        <Folder className="w-6 h-6 fill-blue-100 text-blue-500 dark:fill-blue-900/20" />
-                     </div>
-                     <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                        <MoreVertical className="w-5 h-5" />
-                     </button>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <Link href={`/article/${item.article.id}`} className="block">
+                  <div className="font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 transition-colors">
+                    {item.article.title}
                   </div>
-                  
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">
-                     {collection.name}
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-4">
-                     {collection.count} 篇文章 · 更新于 {collection.updated}
-                  </p>
-                  
-                  <div className="flex -space-x-2 overflow-hidden">
-                     {[1,2,3].map(i => (
-                        <div key={i} className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 ring-2 ring-white dark:ring-slate-900"></div>
-                     ))}
-                  </div>
-               </div>
+                </Link>
+                <div className="text-xs text-slate-500 mt-1 flex items-center gap-3">
+                  <span>{item.article.author?.displayName || item.article.author?.username || "-"}</span>
+                  <span>{(item.collectedAt || "").slice(0, 10)}</span>
+                </div>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-600"
+                onClick={() => {
+                  checkAuth(async () => {
+                    await collectionApi.remove(item.article.id);
+                    const next = await collectionApi.list({ page: 1, size: 50 });
+                    setPage(next);
+                  });
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
-         ))}
-         
-         {/* Add New Card */}
-         <button className="flex flex-col items-center justify-center h-full min-h-[240px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all gap-4 group">
-            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-blue-500 transition-colors">
-               <Plus className="w-6 h-6" />
-            </div>
-            <span className="font-medium text-slate-500 group-hover:text-blue-600 transition-colors">创建新收藏夹</span>
-         </button>
+          ))}
+        </div>
       </div>
 
     </div>
